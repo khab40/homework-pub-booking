@@ -1,5 +1,7 @@
 # homework-pub-booking
 
+![Homework Pub Booking architecture preview](img/homework-pub-booking-social.png)
+
 **Build an AI agent that books a pub in Edinburgh.**
 
 Five exercises, one story: your boss asks you to sort out a pub for

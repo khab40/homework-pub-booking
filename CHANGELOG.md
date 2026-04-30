@@ -56,6 +56,19 @@ Mechanical (27) + Behavioural (19) locally + Reasoning (30) in CI =
 of offline `make check-submit`; cohort CI grades it with an
 LLM-as-judge rubric.
 
+### Local completion and evidence updates
+
+- **`d2b72e7` — Complete homework exercises and reflection evidence.**
+  Implemented and verified the Ex5-Ex8 flows, filled Ex5-Ex9 answer
+  files with session-grounded observations, added architecture docs
+  with Mermaid diagrams, and committed only the session artifacts cited
+  by the reflections. Local validation reported Mechanical 27/27,
+  Behavioural 19/19, and public tests at 27 passed, 0 skipped.
+- **Repository image update.** Added a generated GitHub-ready project
+  preview image under `img/homework-pub-booking-social.png` and linked
+  it at the top of `README.md` so the repository opens with a visual
+  summary of the pub-booking agent architecture.
+
 ---
 
 ## Development log (internal iterations v1–v18)
