@@ -1,0 +1,20 @@
+{
+  "ticket_id": "tk_fabe5120",
+  "operation": "executor.run_subgoal/sg_1",
+  "started_at": "2026-04-25T07:46:50.966005+00:00",
+  "completed_at": "2026-04-25T07:47:33.909400+00:00",
+  "duration_ms": 42943,
+  "outputs": [
+    {
+      "path": "/Users/akhabalov-da_1/Library/Application Support/sovereign-agent/examples/ex5-edinburgh-research/sess_bcac073a9a76/logs/tickets/tk_fabe5120/raw_output.json",
+      "sha256": "ba9e2c5d961483ee2d2395decac2c9e6fe88520a72e9db6492d1b267336b3ef0",
+      "size_bytes": 3963,
+      "content_type": "application/json"
+    }
+  ],
+  "metrics": {
+    "tool_calls": 4,
+    "turns_used": 5,
+    "handoff_requested": false
+  }
+}

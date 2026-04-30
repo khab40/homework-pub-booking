@@ -2,31 +2,41 @@
 
 ## Your answer
 
-The HandoffBridge orchestrates round-trips between the loop half and
-structured half. Each round: loop runs, if next_action=handoff_to_structured
-the bridge writes a forward handoff file, invokes structured, and then
-either marks the session complete (structured confirmed) or builds a
-reverse task and loops back (structured escalated).
+Ex7 is implemented as a bidirectional handoff bridge. The latest run I checked
+is `sess_ff3c806b7f7b`, and it reached `completed` in two bridge rounds. Round 1
+started in the loop half with the task to book 12 people in Haymarket. The trace
+shows the loop called `venue_search(Haymarket, party=12)`, then handed
+`haymarket_tap` to the structured half with `venue_capacity: 8`. The structured
+half rejected it with `party_too_large`, and the bridge wrote a reverse handoff
+back to the loop with that rejection reason.
 
-The reverse-task path is the interesting one. On escalation, the
-bridge rewrites the initial_task into a dict that contains
-prior_result + rejection_reason + retry=True. The loop half sees
-this via the new executor invocation and — in a real LLM setting —
-would produce a different subgoal. In the scripted offline demo we
-hardcode the retry choice (royal_oak with 16 seats) so the test is
-deterministic.
+Round 2 demonstrates the intended recovery. The planner received the rejection
+context, searched Old Town for party size 12, and handed off `royal_oak` with
+`venue_capacity: 16`. The structured half accepted that revised proposal, and
+the session result contains `committed: true`, booking reference `BK-9B8DBC29`,
+and final booking `venue_id: royal_oak`.
 
-Every half transition emits a session.state_changed trace event via
-session.append_trace_event(). The integrity check (integrity.py)
-verifies the trace has at least one round_start, at least one
-state_changed, and at least one tool call — catching the case where
-the bridge reports success without doing real work.
+One caveat from the trace is worth recording: the first `venue_search` returned
+zero results because the search tool filters out venues below party size. The
+scripted handoff still named `haymarket_tap` to exercise the rejection path.
+The bridge behavior itself is correct, but that trace detail is useful for a
+future cleanup ticket.
 
-The stale-handoff cleanup moves old ipc/handoff_to_structured.json
-files into logs/handoffs/ instead of deleting them, preserving the
-audit trail.
+For real-mode evidence, the persisted `ex7-real` session I found is
+`sess_792b89eb08ad`. Its ticket manifests show `llm_model: fake`, so it is the
+deterministic recovery path rather than a successful live-LLM trace. It still
+records the same reservation loop: Haymarket search for 12 returns zero results,
+the handoff nevertheless proposes `haymarket_tap`, Rasa rejects with
+`party_too_large`, and the second loop proposes `royal_oak`. I therefore have
+observed Ex7 completion after recovery, but not a separate live Ex7 LLM
+invention spiral comparable to Ex5.
 
 ## Citations
 
-- starter/handoff_bridge/bridge.py — HandoffBridge.run + helpers
-- starter/handoff_bridge/integrity.py — verify_dataflow
+- Latest Ex7 session: `logs/examples/ex7-handoff-bridge/sess_ff3c806b7f7b`.
+- Final result: `logs/examples/ex7-handoff-bridge/sess_ff3c806b7f7b/session.json`, `state: completed`, `venue_id: royal_oak`, `booking_reference: BK-9B8DBC29`.
+- Trace: `logs/examples/ex7-handoff-bridge/sess_ff3c806b7f7b/logs/trace.jsonl`, round 1 `party_too_large`, round 2 `royal_oak`.
+- Handoffs: `logs/examples/ex7-handoff-bridge/sess_ff3c806b7f7b/logs/handoffs/round_1_forward.json`, `round_1_reverse.json`, and `ipc/handoff_to_structured.json`.
+- Persisted real-mode/recovery session: `logs/examples/ex7-handoff-bridge/sess_792b89eb08ad`.
+- Recovery ticket manifests: `logs/examples/ex7-handoff-bridge/sess_792b89eb08ad/logs/tickets/*/manifest.json`, showing planner `llm_model: fake`.
+- Bridge implementation: `starter/handoff_bridge/bridge.py`.

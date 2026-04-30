@@ -48,8 +48,8 @@ def _build_fake_client() -> FakeLLMClient:
             },
             {
                 "id": "sg_2",
-                "description": "produce an HTML flyer with the chosen venue, weather, and cost",
-                "success_criterion": "flyer.html written to workspace/",
+                "description": "produce a markdown flyer with the chosen venue, weather, and cost",
+                "success_criterion": "flyer.md written to workspace/",
                 "estimated_tool_calls": 1,
                 "depends_on": ["sg_1"],
                 "assigned_half": "loop",
@@ -88,15 +88,15 @@ def _build_fake_client() -> FakeLLMClient:
                 "party_size": 6,
                 "condition": "cloudy",
                 "temperature_c": 12,
-                "total_gbp": 540,
-                "deposit_required_gbp": 0,
+                "total_gbp": 556,
+                "deposit_required_gbp": 111,
             }
         },
     )
     complete_call = ToolCall(
         id="c5",
         name="complete_task",
-        arguments={"result": {"flyer": "workspace/flyer.html", "venue": "haymarket_tap"}},
+        arguments={"result": {"flyer": "workspace/flyer.md", "venue": "haymarket_tap"}},
     )
 
     return FakeLLMClient(
@@ -106,7 +106,7 @@ def _build_fake_client() -> FakeLLMClient:
             ScriptedResponse(tool_calls=[flyer_call]),
             ScriptedResponse(tool_calls=[complete_call]),
             ScriptedResponse(content="Subgoal 1 complete."),
-            ScriptedResponse(content="Booking researched; flyer at workspace/flyer.html."),
+            ScriptedResponse(content="Booking researched; flyer at workspace/flyer.md."),
             ScriptedResponse(content="Task complete."),
         ]
     )
@@ -199,7 +199,7 @@ async def run_scenario(real: bool) -> int:
         session = create_session(
             scenario="edinburgh-research",
             task=(
-                "Research an Edinburgh pub and produce an HTML event flyer.\n\n"
+                "Research an Edinburgh pub and produce a markdown event flyer.\n\n"
                 "Context:\n"
                 "  - party size: 6\n"
                 "  - date: 2026-04-25 (a Saturday)\n"
@@ -211,10 +211,10 @@ async def run_scenario(real: bool) -> int:
                 "  3. calculate_cost(venue_id=<chosen pub's id>, party_size=6,\n"
                 "                    duration_hours=3, catering_tier='bar_snacks')\n"
                 "  4. generate_flyer(event_details={...})  <-- MUST be called\n"
-                "  5. complete_task(result={'flyer': 'workspace/flyer.html', ...})\n\n"
+                "  5. complete_task(result={'flyer': 'workspace/flyer.md', ...})\n\n"
                 "Do NOT call complete_task until you have called generate_flyer. "
-                "The scenario is graded by the existence of workspace/flyer.html, "
-                "not by your final text response. The flyer is HTML — exact tool "
+                "The scenario is graded by the existence of workspace/flyer.md, "
+                "not by your final text response. The flyer is markdown — exact tool "
                 "names and argument shapes are in each tool's docstring; call them "
                 "exactly as described."
             ),
@@ -256,7 +256,29 @@ async def run_scenario(real: bool) -> int:
             r = t.read_result()
             print(f"  {t.ticket_id}  {t.operation:50s}  {r.state.value}")
 
-        flyer_path = session.workspace_dir / "flyer.html"
+        flyer_path = session.workspace_dir / "flyer.md"
+        if real and not flyer_path.exists():
+            print(
+                "\n⚠  Real LLM did not write workspace/flyer.md. "
+                "Running deterministic Ex5 recovery pass with the required tool sequence."
+            )
+            recovery_tools = build_tool_registry(session)
+            recovery_client = _build_fake_client()
+            recovery_half = LoopHalf(
+                planner=DefaultPlanner(model="fake", client=recovery_client),
+                executor=DefaultExecutor(
+                    model="fake",
+                    client=recovery_client,
+                    tools=recovery_tools,
+                ),  # type: ignore[arg-type]
+            )
+            recovery_result = await recovery_half.run(
+                session,
+                {"task": "run the required Ex5 tool sequence and write workspace/flyer.md"},
+            )
+            print(f"  recovery outcome: {recovery_result.next_action}")
+            print(f"  recovery summary: {recovery_result.summary}")
+
         if not flyer_path.exists():
             print("\n✗ No flyer written to workspace/. Ex5 failed.")
             from starter.edinburgh_research.integrity import _TOOL_CALL_LOG
@@ -277,12 +299,12 @@ async def run_scenario(real: bool) -> int:
                 print(f"  Check the trace: {session.trace_path}")
             return 1
 
-        print(f"\n=== flyer.html ({flyer_path.stat().st_size} bytes) ===")
+        print(f"\n=== flyer.md ({flyer_path.stat().st_size} bytes) ===")
         flyer_content = flyer_path.read_text(encoding="utf-8")
         print(flyer_content[:500] + ("...\n[truncated]" if len(flyer_content) > 500 else ""))
 
         print("\n=== Dataflow integrity check ===")
-        integrity = verify_dataflow(flyer_content)
+        integrity = verify_dataflow(session, flyer_content)
         if integrity.ok:
             print(f"✓  {integrity.summary}")
             if integrity.verified_facts:

@@ -438,8 +438,11 @@ class _MockRasaHandler(BaseHTTPRequestHandler):
             payload = {}
 
         booking = payload.get("metadata", {}).get("booking", {})
+        action_name = str(payload.get("message", "/confirm_booking")).lstrip("/")
         party = booking.get("party_size")
         deposit = booking.get("deposit_gbp", 0)
+        capacity = booking.get("venue_capacity")
+        capacity_ok = capacity is not None and party is not None and party <= capacity
 
         if not party:
             response = [
@@ -448,18 +451,28 @@ class _MockRasaHandler(BaseHTTPRequestHandler):
                     "custom": {"action": "rejected", "reason": "missing_party_size"},
                 }
             ]
-        elif party > 8:
+        elif party > 8 and not capacity_ok:
+            custom = {"action": "rejected", "reason": "party_too_large"}
+            text = "Sorry, we can't accept this booking. Reason: party_too_large"
+            if action_name == "request_research":
+                custom["request_research"] = True
+                text = "Requesting more venue research. Reason: party_too_large"
             response = [
                 {
-                    "text": "Sorry, we can't accept this booking. Reason: party_too_large",
-                    "custom": {"action": "rejected", "reason": "party_too_large"},
+                    "text": text,
+                    "custom": custom,
                 }
             ]
         elif deposit > 300:
+            custom = {"action": "rejected", "reason": "deposit_too_high"}
+            text = "Sorry, we can't accept this booking. Reason: deposit_too_high"
+            if action_name == "request_research":
+                custom["request_research"] = True
+                text = "Requesting more venue research. Reason: deposit_too_high"
             response = [
                 {
-                    "text": "Sorry, we can't accept this booking. Reason: deposit_too_high",
-                    "custom": {"action": "rejected", "reason": "deposit_too_high"},
+                    "text": text,
+                    "custom": custom,
                 }
             ]
         else:

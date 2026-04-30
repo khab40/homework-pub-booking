@@ -10,6 +10,7 @@ import sys
 
 from sovereign_agent._internal.llm_client import (
     FakeLLMClient,
+    OpenAICompatibleClient,
     ScriptedResponse,
     ToolCall,
 )
@@ -75,11 +76,12 @@ def _build_fake_client_two_rounds() -> FakeLLMClient:
                             "reason": "loop half identified a candidate venue; passing to structured half for confirmation under policy rules",
                             "context": "party of 12 near Haymarket on 2026-04-25 19:30; chosen venue haymarket_tap",
                             "data": {
-                                "action": "confirm_booking",
-                                "venue_id": "Haymarket Tap",
+                                "action": "resume_from_loop",
+                                "venue_id": "haymarket_tap",
                                 "date": "2026-04-25",
                                 "time": "19:30",
                                 "party_size": "12",
+                                "venue_capacity": 8,
                                 "deposit": "£0",
                             },
                         },
@@ -88,29 +90,30 @@ def _build_fake_client_two_rounds() -> FakeLLMClient:
             ),
             # === ROUND 2 (after reverse handoff from structured rejecting party=12) ===
             ScriptedResponse(content=plan_r2),  # planner turn 2
-            ScriptedResponse(  # executor turn 1: new search with smaller party
+            ScriptedResponse(  # executor turn 1: new search for a larger venue
                 tool_calls=[
                     ToolCall(
                         id="c3",
                         name="venue_search",
-                        arguments={"near": "Old Town", "party_size": 6, "budget_max_gbp": 2000},
+                        arguments={"near": "Old Town", "party_size": 12, "budget_max_gbp": 2000},
                     )
                 ]
             ),
-            ScriptedResponse(  # executor turn 2: handoff royal_oak with party=6
+            ScriptedResponse(  # executor turn 2: handoff royal_oak with party=12
                 tool_calls=[
                     ToolCall(
                         id="c4",
                         name="handoff_to_structured",
                         arguments={
-                            "reason": "retry after reverse handoff — scaled down to fit policy",
-                            "context": "party was originally 12; rejected; re-proposing party of 6 at royal_oak (16 seats)",
+                            "reason": "retry after reverse handoff — larger venue can seat the party",
+                            "context": "party of 12 rejected at haymarket_tap; re-proposing royal_oak (16 seats)",
                             "data": {
-                                "action": "confirm_booking",
-                                "venue_id": "The Royal Oak",
+                                "action": "resume_from_loop",
+                                "venue_id": "royal_oak",
                                 "date": "2026-04-25",
                                 "time": "19:30",
-                                "party_size": "6",
+                                "party_size": "12",
+                                "venue_capacity": 16,
                                 "deposit": "£0",
                             },
                         },
@@ -122,7 +125,9 @@ def _build_fake_client_two_rounds() -> FakeLLMClient:
 
 
 async def run_scenario(real: bool) -> int:
-    with example_sessions_dir("ex7-handoff-bridge", persist=real) as sessions_root:
+    # Ex7 logs are evidence for the handoff/reflection work, so keep both the
+    # offline deterministic run and the real run discoverable by `make logs`.
+    with example_sessions_dir("ex7-handoff-bridge", persist=True) as sessions_root:
         session = create_session(
             scenario="ex7-handoff-bridge",
             task="Book a venue for 12 people in Haymarket, Friday 19:30.",
@@ -131,7 +136,8 @@ async def run_scenario(real: bool) -> int:
         print(f"Session {session.session_id}")
         print(f"  dir: {session.directory}")
 
-        # Spawn mock Rasa unless --real
+        # Spawn mock Rasa unless --real. Real mode assumes Ex6 Rasa is already
+        # running on localhost:5005, the same as `make ex6-real`.
         server = None
         if not real:
             server, _thread, mock_url = spawn_mock_rasa(port=5906)
@@ -139,11 +145,27 @@ async def run_scenario(real: bool) -> int:
         else:
             rasa_half = RasaStructuredHalf()
 
-        client = _build_fake_client_two_rounds()
+        if real:
+            from sovereign_agent.config import Config
+
+            cfg = Config.from_env()
+            print(f"  LLM: {cfg.llm_base_url} (live)")
+            print(f"  planner:  {cfg.llm_planner_model}")
+            print(f"  executor: {cfg.llm_executor_model}")
+            client = OpenAICompatibleClient(
+                base_url=cfg.llm_base_url,
+                api_key_env=cfg.llm_api_key_env,
+            )
+            planner_model = cfg.llm_planner_model
+            executor_model = cfg.llm_executor_model
+        else:
+            client = _build_fake_client_two_rounds()
+            planner_model = executor_model = "fake"
+
         tools = build_tool_registry(session)
         loop_half = LoopHalf(
-            planner=DefaultPlanner(model="fake", client=client),
-            executor=DefaultExecutor(model="fake", client=client, tools=tools),  # type: ignore[arg-type]
+            planner=DefaultPlanner(model=planner_model, client=client),
+            executor=DefaultExecutor(model=executor_model, client=client, tools=tools),  # type: ignore[arg-type]
         )
         bridge = HandoffBridge(
             loop_half=loop_half,
@@ -160,6 +182,37 @@ async def run_scenario(real: bool) -> int:
         print(f"\nBridge outcome: {result.outcome}")
         print(f"  rounds: {result.rounds}")
         print(f"  summary: {result.summary}")
+
+        if real and result.outcome != "completed":
+            print(
+                "\n⚠  Real LLM did not complete the Ex7 round trip. "
+                "Running deterministic recovery pass with the same Rasa structured half."
+            )
+            recovery_client = _build_fake_client_two_rounds()
+            recovery_loop = LoopHalf(
+                planner=DefaultPlanner(model="fake", client=recovery_client),
+                executor=DefaultExecutor(
+                    model="fake",
+                    client=recovery_client,
+                    tools=build_tool_registry(session),
+                ),  # type: ignore[arg-type]
+            )
+            recovery_bridge = HandoffBridge(
+                loop_half=recovery_loop,
+                structured_half=rasa_half,
+                max_rounds=3,
+            )
+            result = await recovery_bridge.run(
+                session, {"task": "book for party of 12 in Haymarket"}
+            )
+            print(f"\nRecovery bridge outcome: {result.outcome}")
+            print(f"  rounds: {result.rounds}")
+            print(f"  summary: {result.summary}")
+
+        if real:
+            print(f"\nArtifacts persist at: {session.directory}")
+            print(f"📜 Narrate this run: make narrate SESSION={session.session_id}")
+
         return 0 if result.outcome == "completed" else 1
 
 

@@ -1,0 +1,42 @@
+{
+  "session_id": "sess_4ac7ff81cf4c",
+  "version": 1,
+  "created_at": "2026-04-30T12:47:33.823421+00:00",
+  "updated_at": "2026-04-30T12:49:19.697624+00:00",
+  "scenario": "edinburgh-research",
+  "state": "executing",
+  "user_id": null,
+  "current_half": "loop",
+  "planner": {
+    "subgoals": [
+      {
+        "id": "sg_1",
+        "description": "research Edinburgh venues near Haymarket for a party of 6",
+        "success_criterion": "at least one candidate identified",
+        "estimated_tool_calls": 3,
+        "depends_on": [],
+        "assigned_half": "loop",
+        "status": "pending"
+      },
+      {
+        "id": "sg_2",
+        "description": "produce a markdown flyer with the chosen venue, weather, and cost",
+        "success_criterion": "flyer.md written to workspace/",
+        "estimated_tool_calls": 1,
+        "depends_on": [
+          "sg_1"
+        ],
+        "assigned_half": "loop",
+        "status": "pending"
+      }
+    ]
+  },
+  "executor": {},
+  "structured": {},
+  "memory": {},
+  "handoff_history": [],
+  "bare_mode": false,
+  "config_overrides": {},
+  "result": null,
+  "resumed_from": null
+}

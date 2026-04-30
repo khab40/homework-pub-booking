@@ -1,0 +1,25 @@
+{
+  "subgoal_id": "sg_2",
+  "success": true,
+  "final_answer": "(handoff requested)",
+  "tool_calls_made": [
+    {
+      "name": "handoff_to_structured",
+      "arguments": {
+        "reason": "Need venue details to populate flyer content",
+        "context": "Drafting promotional flyer for selected Edinburgh venue",
+        "data": {}
+      },
+      "success": true,
+      "summary": "handoff to structured half: Need venue details to populate flyer content",
+      "requires_human_approval": false
+    }
+  ],
+  "turns_used": 1,
+  "handoff_requested": true,
+  "handoff_payload": {
+    "reason": "Need venue details to populate flyer content",
+    "context": "Drafting promotional flyer for selected Edinburgh venue",
+    "data": {}
+  }
+}

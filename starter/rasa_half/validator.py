@@ -56,6 +56,8 @@ def normalise_booking_payload(raw: dict) -> dict:
     if not isinstance(raw, dict):
         raise ValidationFailed(f"expected dict, got {type(raw).__name__}")
 
+    action = canonicalise_action(raw.get("action", "confirm_booking"))
+
     venue_id_raw = raw.get("venue_id")
     if not venue_id_raw:
         raise ValidationFailed("missing venue_id")
@@ -72,6 +74,9 @@ def normalise_booking_payload(raw: dict) -> dict:
     time_24h = parse_time_24h(time_raw)
 
     party = parse_party_size(raw.get("party_size"))
+    venue_capacity = parse_optional_positive_int(
+        raw.get("venue_capacity", raw.get("seats_available_evening"))
+    )
 
     deposit = 0
     if raw.get("deposit") is not None:
@@ -89,20 +94,23 @@ def normalise_booking_payload(raw: dict) -> dict:
 
     stable_suffix = hashlib.sha1(f"{venue_id}-{date_iso}-{time_24h}".encode()).hexdigest()[:8]
 
+    booking = {
+        "action": action,
+        "venue_id": venue_id,
+        "date": date_iso,
+        "time": time_24h,
+        "party_size": party,
+        "deposit_gbp": deposit,
+        "duration_hours": duration,
+        "catering_tier": catering,
+    }
+    if venue_capacity is not None:
+        booking["venue_capacity"] = venue_capacity
+
     return {
         "sender": f"homework-{stable_suffix}",
-        "message": "/confirm_booking",
-        "metadata": {
-            "booking": {
-                "venue_id": venue_id,
-                "date": date_iso,
-                "time": time_24h,
-                "party_size": party,
-                "deposit_gbp": deposit,
-                "duration_hours": duration,
-                "catering_tier": catering,
-            }
-        },
+        "message": f"/{action}",
+        "metadata": {"booking": booking},
     }
 
 
@@ -211,6 +219,26 @@ def canonicalise_venue_id(raw: str) -> str:
     return s
 
 
+def canonicalise_action(raw: str) -> str:
+    """Map loop-side action labels to one of the Rasa flow ids."""
+    action = canonicalise_venue_id(str(raw or "confirm_booking"))
+    aliases = {
+        "confirm": "confirm_booking",
+        "confirm_booking": "confirm_booking",
+        "resume": "resume_from_loop",
+        "resume_loop": "resume_from_loop",
+        "resume_from_loop": "resume_from_loop",
+        "request_research": "request_research",
+        "research": "request_research",
+        "re_research": "request_research",
+        "rersearch": "request_research",
+        "try_another_venue": "request_research",
+    }
+    if action not in aliases:
+        raise ValidationFailed(f"unknown action: {raw!r}")
+    return aliases[action]
+
+
 def parse_party_size(raw: str | int) -> int:
     """'6' → 6. 6 → 6. '6 people' → 6. Rejects < 1 or non-numeric."""
     if isinstance(raw, int):
@@ -226,12 +254,27 @@ def parse_party_size(raw: str | int) -> int:
     raise ValidationFailed(f"cannot parse party size: {raw!r}")
 
 
+def parse_optional_positive_int(raw: str | int | None) -> int | None:
+    """Parse optional positive integers such as venue capacity metadata."""
+    if raw is None or raw == "":
+        return None
+    if isinstance(raw, int):
+        return raw if raw > 0 else None
+    s = str(raw).strip()
+    if m := re.match(r"(\d+)", s):
+        n = int(m.group(1))
+        return n if n > 0 else None
+    return None
+
+
 __all__ = [
     "NormalisedBooking",
     "ValidationFailed",
+    "canonicalise_action",
     "canonicalise_venue_id",
     "normalise_booking_payload",
     "parse_currency_gbp",
+    "parse_optional_positive_int",
     "parse_party_size",
     "parse_time_24h",
 ]

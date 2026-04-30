@@ -257,6 +257,7 @@ logs: ## Print the path to your most recent session (across all scenarios)
 		from pathlib import Path; \
 		cands = []; \
 		[cands.extend(Path('sessions').glob('sess_*'))] if Path('sessions').exists() else None; \
+		[cands.extend(Path('logs').glob('examples/*/sess_*'))] if Path('logs').exists() else None; \
 		root = _platform_data_dir(); \
 		[cands.extend(root.glob('examples/*/sess_*'))] if root.exists() else None; \
 		cands = [c for c in cands if c.is_dir()]; \
@@ -305,6 +306,10 @@ ex6-help: ## Print the three-terminal recipe for Ex6 real mode
 .PHONY: ex7
 ex7: ## Run Ex7 (handoff bridge) end-to-end
 	@$(UV) run python -m starter.handoff_bridge.run
+
+.PHONY: ex7-real
+ex7-real: ## Run Ex7 with real Nebius LLM in the loop (requires Rasa on :5005)
+	@$(UV) run python -m starter.handoff_bridge.run --real
 
 .PHONY: ex8-text
 ex8-text: ## Run Ex8 (voice pipeline) in TEXT-ONLY mode — no Speechmatics needed

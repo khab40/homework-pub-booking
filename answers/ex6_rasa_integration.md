@@ -2,28 +2,29 @@
 
 ## Your answer
 
-The RasaStructuredHalf subclass overrides run() to POST a booking
-intent to Rasa's REST webhook and interpret the response. Input
-payload flows: loop half produces raw booking data → StructuredHalf
-calls normalise_booking_payload (via validator.py) to produce a
-Rasa-shaped message with canonical types → urllib POST to Rasa →
-parse response for {action: committed} or {action: rejected} custom
-slots.
+Ex6 is implemented as the structured policy half. The Python side no longer
+just makes an in-process decision; `RasaStructuredHalf.run` normalizes the
+booking payload, POSTs it to the Rasa REST webhook shape, parses the Rasa-style
+response, and returns a `HalfResult`. The validator is the bridge between loose
+loop-side data and Rasa data: it canonicalizes venue IDs, dates, times, party
+size, deposit, action names, and optional venue capacity.
 
-For offline mode we spawn a stdlib http.server thread that mimics a
-Rasa webhook. It always confirms, which is enough for unit tests.
-Rejection is exercised in Ex7 where the loop half's arguments drive
-the decision.
-
-Three design choices worth noting: (1) we raise ValidationFailed in
-normalise_booking_payload and catch it in run() rather than letting
-it propagate; the StructuredHalf contract demands a HalfResult. (2)
-Network errors return success=False with SA_EXT_SERVICE_UNAVAILABLE
-— the caller decides whether to retry. (3) The stable sender_id is a
-hash of (venue+date+time) so the Rasa tracker is consistent across
-retries within one session.
+The Rasa project contains the required flows: `confirm_booking`,
+`resume_from_loop`, and `request_research`. The custom action reads
+`tracker.latest_message.metadata.booking`, fills slots, rejects missing fields,
+rejects deposit over £300, and rejects party size over 8 unless an explicit
+venue capacity can seat the group. I verified the offline tier with `make ex6`.
+That run created session `sess_c6a0799b06b3`, used the stdlib mock Rasa server
+on port 5905, and returned `Structured half outcome: complete` with booking
+reference `BK-7D401E9E` for `haymarket_tap`, date `2026-04-25`, time `19:30`,
+party size 6, and deposit £200. Real Rasa still requires the three-process setup,
+but the implemented code path matches the assignment contract.
 
 ## Citations
 
-- starter/rasa_half/validator.py — normalise_booking_payload + helpers
-- starter/rasa_half/structured_half.py — RasaStructuredHalf.run + mock server
+- Observed run: `make ex6`, session `sess_c6a0799b06b3`, mock URL `http://127.0.0.1:5905/webhooks/rest/webhook`, booking reference `BK-7D401E9E`.
+- Persisted Ex6 session shell: `logs/examples/ex6-rasa-half/sess_2f8bd5ca2b6e/session.json`.
+- Validator: `starter/rasa_half/validator.py`, `normalise_booking_payload`.
+- HTTP structured half and mock Rasa policy: `starter/rasa_half/structured_half.py`.
+- Rasa flows: `rasa_project/data/flows.yml`.
+- Custom action: `rasa_project/actions/actions.py`, `ActionValidateBooking`.

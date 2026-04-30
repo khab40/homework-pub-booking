@@ -74,6 +74,7 @@ class ActionValidateBooking(Action):
         time_slot = booking.get("time")
         party_size = booking.get("party_size")
         deposit_gbp = booking.get("deposit_gbp", 0)
+        venue_capacity = booking.get("venue_capacity")
 
         # All the slot-sets we'll emit — start with populating from metadata
         # so downstream responses can reference {venue_id}, {party_size}, etc.
@@ -115,8 +116,15 @@ class ActionValidateBooking(Action):
         except (TypeError, ValueError):
             return slot_events + [SlotSet("validation_error", "invalid_deposit")]
 
+        try:
+            capacity_int = int(float(venue_capacity)) if venue_capacity is not None else None
+        except (TypeError, ValueError):
+            capacity_int = None
+
         # Rule checks
-        if party_int > MAX_PARTY_SIZE_FOR_AUTO_BOOKING:
+        if party_int > MAX_PARTY_SIZE_FOR_AUTO_BOOKING and (
+            capacity_int is None or party_int > capacity_int
+        ):
             return slot_events + [SlotSet("validation_error", "party_too_large")]
 
         if deposit_int > MAX_DEPOSIT_FOR_AUTO_BOOKING_GBP:

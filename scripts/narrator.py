@@ -218,7 +218,8 @@ def find_session(session_id_or_path: str) -> Path | None:
     Search order:
       1. Absolute/relative path
       2. ./sessions/<id>
-      3. <platform data dir>/examples/*/<id>
+      3. ./logs/examples/*/<id>
+      4. <platform data dir>/examples/*/<id>
     """
     cand = Path(session_id_or_path)
     if cand.is_absolute() and cand.exists():
@@ -235,6 +236,13 @@ def find_session(session_id_or_path: str) -> Path | None:
     ):
         if sub.is_dir():
             return sub.resolve()
+
+    # Repo-local example logs, used when SOVEREIGN_AGENT_DATA_DIR points here.
+    if Path("logs").exists():
+        for ex_dir in Path("logs").glob("examples/*"):
+            for sub in ex_dir.glob(f"*{session_id_or_path}*"):
+                if sub.is_dir():
+                    return sub.resolve()
 
     # Platform user-data dir
     data_root = _platform_data_dir()
@@ -357,6 +365,8 @@ def main() -> int:
         candidates: list[Path] = []
         if Path("sessions").exists():
             candidates.extend(Path("sessions").glob("sess_*"))
+        if Path("logs").exists():
+            candidates.extend(Path("logs").glob("examples/*/sess_*"))
         data_root = _platform_data_dir()
         if data_root.exists():
             candidates.extend(data_root.glob("examples/*/sess_*"))

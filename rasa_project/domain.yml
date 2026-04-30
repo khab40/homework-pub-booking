@@ -44,6 +44,15 @@ responses:
     - text: "Booking confirmed. Reference: {booking_reference}."
   utter_booking_rejected:
     - text: "Sorry, we can't accept this booking. Reason: {validation_error}"
+      custom:
+        action: rejected
+        reason: "{validation_error}"
+  utter_research_requested:
+    - text: "Requesting more venue research. Reason: {validation_error}"
+      custom:
+        action: rejected
+        reason: "{validation_error}"
+        request_research: true
 
 actions:
   - action_validate_booking
