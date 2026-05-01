@@ -22,7 +22,7 @@ from sovereign_agent.errors import ToolError
 from sovereign_agent.session.directory import Session
 from sovereign_agent.tools.registry import ToolRegistry, ToolResult, _RegisteredTool
 
-from starter.edinburgh_research.integrity import record_tool_call
+from starter.edinburgh_research.integrity import _TOOL_CALL_LOG, record_tool_call
 
 _SAMPLE_DATA = Path(__file__).parent / "sample_data"
 
@@ -81,6 +81,16 @@ def venue_search(near: str, party_size: int, budget_max_gbp: int = 1000) -> Tool
         "party_size": party_size,
         "budget_max_gbp": budget_max_gbp,
     }
+    search_count = sum(1 for record in _TOOL_CALL_LOG if record.tool_name == "venue_search")
+    if search_count >= 3:
+        output = {"error": "too_many_searches", "count": search_count}
+        record_tool_call("venue_search", arguments, output)
+        return ToolResult(
+            success=False,
+            output=output,
+            summary="STOP calling venue_search; use the results you already have.",
+        )
+
     if not isinstance(near, str) or not near.strip():
         return _invalid_result("venue_search", arguments, "near must be a non-empty string")
     if not isinstance(party_size, int) or party_size <= 0:
