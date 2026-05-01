@@ -3,8 +3,9 @@
 ## Goal
 
 Ex5 demonstrates a complete loop-half scenario. The agent researches venues,
-checks weather, calculates catering cost, writes a markdown flyer, and verifies
-that concrete flyer facts came from tool outputs.
+checks weather, calculates catering cost, writes `workspace/flyer.md`, and
+verifies that concrete flyer facts came from tool outputs or replayable
+persisted trace evidence.
 
 ## Diagram
 
@@ -33,7 +34,11 @@ sequenceDiagram
     LoopAgent->>Tools: generate_flyer(event_details)
     Tools->>Workspace: write flyer.md
     Run->>Check: verify_dataflow(session, flyer.md)
-    Check->>Log: compare flyer facts to tool outputs
+    Check->>Log: compare flyer facts to in-process tool outputs
+    alt fresh process or committed evidence session
+        Check->>Workspace: match persisted flyer.md
+        Check->>Data: replay read/calculation tool outputs from trace arguments
+    end
     Check-->>Run: dataflow OK or FAIL
 ```
 
@@ -45,6 +50,8 @@ sequenceDiagram
 - LLM-written final content is not trusted by default.
 - The integrity check catches fabricated venue names, weather conditions,
   temperatures, and prices.
+- Offline and real runs are persisted because their traces are part of the
+  homework evidence used by Ex9.
 
 ## Primary Code
 

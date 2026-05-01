@@ -241,32 +241,14 @@ of the process.
 
 ---
 
-## 8. (Optional) Install Docker + Rasa for Ex6
-
-Ex6 uses Rasa as a structured-dialog backend. Rasa runs as a Docker container
-so you don't have to fight Python version conflicts.
-
-Detailed guide: `docs/rasa-docker.md`.
-
-TL;DR:
-
-1. Install Docker Desktop (macOS/Windows) or `docker` + `docker-compose` (Linux).
-2. `docker pull rasa/rasa-pro:latest` (takes ~2 GB).
-3. The first `make ex6-real` will spin up the container automatically.
-
-**You can complete Ex5, Ex7, Ex8, and Ex9 without Docker.** Ex6 is the only one
-that needs it.
-
----
-
-## 9. (Optional) Install Speechmatics for voice in Ex8
+## 8. (Optional) Install Speechmatics for voice in Ex8
 
 Ex8 supports TWO modes:
 
 - **Text mode** (default): simulates voice by using printed transcripts.
   No extra setup. Works for everyone.
-- **Voice mode**: real STT via Speechmatics and real TTS via ElevenLabs.
-  Requires two additional API keys.
+- **Voice mode**: real STT via Speechmatics.
+  Requires additional API key.
 
 Text-only mode is sufficient for full credit on most of Ex8. Voice mode is
 a differentiator for students who want to stretch themselves.
@@ -275,7 +257,7 @@ Detailed guide: `docs/speechmatics-setup.md`.
 
 ---
 
-## 10. What to do if you're stuck for > 30 minutes
+## 9. What to do if you're stuck for > 30 minutes
 
 1. **Run `make verify`** and paste the output. It diagnoses almost everything.
 2. **Check `docs/troubleshooting.md`** — it's organised by error message, not

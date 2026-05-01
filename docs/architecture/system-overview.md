@@ -36,7 +36,7 @@ flowchart LR
     Runner --> Voice[Voice pipeline]
     Voice --> Speechmatics[Speechmatics STT]
     Voice --> Persona[ManagerPersona on Nebius]
-    Voice --> ElevenLabs[ElevenLabs TTS]
+    Voice --> ElevenLabs[ElevenLabs REST TTS]
     Voice --> Trace
 ```
 
@@ -56,7 +56,7 @@ flowchart TB
         RasaServer[Rasa server :5005]
         RasaActions[Rasa actions :5055]
         Speechmatics[Speechmatics]
-        ElevenLabs[ElevenLabs]
+        ElevenLabs[ElevenLabs REST TTS]
     end
 
     Python --> FakeLLM
@@ -81,12 +81,16 @@ classDiagram
 
     class Workspace {
         +flyer.md
+        +turn_N_input.wav
         +exercise_outputs
     }
 
     class Trace {
         +planner_events
-        +tool_events
+        +executor.tool_called
+        +structured.session_started
+        +structured.completed
+        +bridge.failed
         +voice.utterance_in
         +voice.utterance_out
     }
@@ -103,6 +107,8 @@ classDiagram
 ```
 
 The important design point is that every exercise leaves evidence in the
-session. Ex5 produces a flyer and tool log. Ex7 archives the handoff round
-trip. Ex8 logs each utterance. Ex9 should cite those traces instead of relying
-on generic conclusions.
+session. Ex5 produces a markdown flyer and a replayable tool trace. Ex6 marks
+structured-half start, completion, rejection, or failure events. Ex7 archives
+each handoff round trip under `logs/handoffs/`. Ex8 logs each utterance with
+the same event names in text and voice modes. Ex9 should cite those traces
+instead of relying on generic conclusions.

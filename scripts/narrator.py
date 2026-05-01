@@ -361,16 +361,24 @@ def main() -> int:
     args = p.parse_args()
 
     if args.latest:
-        # Find the newest session across sessions/ and the platform data dir
-        candidates: list[Path] = []
+        # Prefer project-local logs. Fall back to platform app-support sessions
+        # only when this checkout has no local sessions.
+        local_candidates: list[Path] = []
         if Path("sessions").exists():
-            candidates.extend(Path("sessions").glob("sess_*"))
+            local_candidates.extend(Path("sessions").glob("sess_*"))
         if Path("logs").exists():
-            candidates.extend(Path("logs").glob("examples/*/sess_*"))
-        data_root = _platform_data_dir()
-        if data_root.exists():
-            candidates.extend(data_root.glob("examples/*/sess_*"))
-        candidates = [c for c in candidates if c.is_dir()]
+            local_candidates.extend(Path("logs").glob("examples/*/sess_*"))
+        candidates = [
+            c for c in local_candidates if c.is_dir() and (c / "logs" / "trace.jsonl").exists()
+        ]
+        if not candidates:
+            data_root = _platform_data_dir()
+            if data_root.exists():
+                candidates.extend(
+                    c
+                    for c in data_root.glob("examples/*/sess_*")
+                    if c.is_dir() and (c / "logs" / "trace.jsonl").exists()
+                )
         if not candidates:
             print(_C.r("✗ no sessions found. Run a scenario first (e.g. make ex5-real)."))
             return 1

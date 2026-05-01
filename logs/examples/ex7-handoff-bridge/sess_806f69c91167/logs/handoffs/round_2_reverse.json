@@ -1,0 +1,43 @@
+{
+  "version": 1,
+  "from_half": "structured",
+  "to_half": "loop",
+  "written_at": "2026-05-01T06:11:49.457298+00:00",
+  "session_id": "sess_806f69c91167",
+  "reason": "normalisation failed: missing venue_id",
+  "context": "normalisation failed: missing venue_id",
+  "data": {
+    "task": "The structured half rejected the previous proposal. Reason: normalisation failed: missing venue_id. Produce an alternative.",
+    "context": {
+      "prior_result": {
+        "subgoal_id": "sg_1",
+        "executor_results": [
+          {
+            "subgoal_id": "sg_1",
+            "success": true,
+            "final_answer": "(handoff requested)",
+            "turns_used": 1,
+            "tool_calls_made": [
+              {
+                "name": "handoff_to_structured",
+                "arguments": {
+                  "reason": "No available function to retrieve venue_id by venue name",
+                  "context": "Subgoal requires accessing venue database by name, but venue_search only filters by area/party_size/budget",
+                  "data": {}
+                },
+                "success": true,
+                "summary": "handoff to structured half: No available function to retrieve venue_id by venue name",
+                "requires_human_approval": false
+              }
+            ],
+            "handoff_requested": true
+          }
+        ]
+      },
+      "rejection_reason": "normalisation failed: missing venue_id",
+      "retry": true
+    }
+  },
+  "return_instructions": "Use the rejection reason to produce an alternative venue proposal, then hand off to structured again.",
+  "constraints_reminder": null
+}

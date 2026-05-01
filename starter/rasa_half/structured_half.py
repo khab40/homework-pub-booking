@@ -202,6 +202,15 @@ class RasaStructuredHalf(StructuredHalf):
                 next_action="escalate",
             )
 
+        if booking.get("action") != "confirm_booking":
+            fallback_data = dict(data)
+            fallback_data["action"] = "confirm_booking"
+            fallback_result = await self.run(session, {"data": fallback_data})
+            if isinstance(fallback_result.output, dict):
+                fallback_result.output.setdefault("fallback_from_action", booking.get("action"))
+                fallback_result.output.setdefault("initial_rasa_response", messages)
+            return fallback_result
+
         return HalfResult(
             success=False,
             output={

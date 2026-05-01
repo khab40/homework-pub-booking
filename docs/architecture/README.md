@@ -21,13 +21,18 @@ viewers that support Mermaid.
 - [Ex9 Reflection](ex9-reflection.md) - evidence-based answers grounded in
   session traces.
 
-## Current Architecture Scope
+## Final Architecture Scope
 
 The architecture reflects the implemented code in `starter/`, `rasa_project/`,
 and the `Makefile` targets:
 
-- Ex5 writes `workspace/flyer.md`, not `flyer.html`.
-- Ex6 real mode uses Rasa processes on localhost, with a mock Rasa path for
-  offline development.
-- Ex7 has both offline and `ex7-real` modes.
-- Ex8 voice mode uses Speechmatics for STT and ElevenLabs for TTS.
+- Ex5 writes `workspace/flyer.md`, persists deterministic and real evidence
+  sessions, and can replay persisted trace evidence during dataflow checks.
+- Ex6 uses a Rasa-backed structured half with three runtime tiers: stdlib mock,
+  manually started host-process Rasa, and auto-spawned host-process Rasa.
+- Ex7 uses the same structured half behind a bidirectional handoff bridge, with
+  deterministic recovery for live runs that do not complete the round trip.
+- Ex8 text and voice modes share trace event shapes; voice mode uses
+  Speechmatics for STT and ElevenLabs REST TTS when credentials are present.
+- Ex9 is an evidence exercise: answer files cite committed example sessions and
+  traces rather than describing the architecture generically.

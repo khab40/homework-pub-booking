@@ -15,10 +15,12 @@ variations (leading £, trailing C, case differences).
 
 from __future__ import annotations
 
+import json
 import re
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from html import unescape
+from pathlib import Path
 from typing import Any
 
 
@@ -129,6 +131,135 @@ def fact_appears_in_log(fact: Any, log: list[ToolCallRecord] | None = None) -> b
     return any(_scan(r.output) for r in records if r.tool_name != "generate_flyer")
 
 
+def _trace_path_from_session(session: Any) -> Path | None:
+    if session is None:
+        return None
+    if isinstance(session, (str, Path)):
+        base = Path(session)
+    else:
+        directory = getattr(session, "directory", None)
+        if directory is None:
+            return None
+        base = Path(directory)
+    if base.name == "trace.jsonl":
+        return base
+    trace_path = base / "logs" / "trace.jsonl"
+    return trace_path if trace_path.exists() else None
+
+
+def _matching_trace_for_flyer(flyer_content: str) -> Path | None:
+    candidates: list[Path] = []
+    local_root = Path("logs") / "examples" / "ex5-edinburgh-research"
+    if local_root.exists():
+        candidates.extend(local_root.glob("sess_*"))
+    if Path("sessions").exists():
+        candidates.extend(Path("sessions").glob("sess_*"))
+
+    session_dirs = [p for p in candidates if p.is_dir()]
+    session_dirs.sort(key=lambda p: p.stat().st_mtime, reverse=True)
+    for session_dir in session_dirs:
+        flyer_path = session_dir / "workspace" / "flyer.md"
+        trace_path = session_dir / "logs" / "trace.jsonl"
+        if not flyer_path.exists() or not trace_path.exists():
+            continue
+        try:
+            if flyer_path.read_text(encoding="utf-8") == flyer_content:
+                return trace_path
+        except OSError:
+            continue
+    return None
+
+
+def _records_from_trace(trace_path: Path) -> list[ToolCallRecord]:
+    sample_data = Path(__file__).parent / "sample_data"
+
+    def _load_fixture(filename: str) -> Any:
+        return json.loads((sample_data / filename).read_text(encoding="utf-8"))
+
+    def _replay_output(tool_name: str, arguments: dict) -> dict | None:
+        if tool_name == "venue_search":
+            venues = _load_fixture("venues.json")
+            near = str(arguments["near"])
+            party_size = int(arguments["party_size"])
+            budget_max_gbp = int(arguments.get("budget_max_gbp", 1000))
+            needle = near.casefold()
+            results = [
+                venue
+                for venue in venues
+                if venue.get("open_now") is True
+                and needle in str(venue.get("area", "")).casefold()
+                and int(venue.get("seats_available_evening", 0)) >= party_size
+                and int(venue.get("hire_fee_gbp", 0)) + int(venue.get("min_spend_gbp", 0))
+                <= budget_max_gbp
+            ]
+            return {
+                "near": near,
+                "party_size": party_size,
+                "results": results,
+                "count": len(results),
+            }
+        if tool_name == "get_weather":
+            weather = _load_fixture("weather.json")
+            city_key = str(arguments["city"]).casefold()
+            date = str(arguments["date"])
+            return {"city": city_key, "date": date, **weather[city_key][date]}
+        if tool_name == "calculate_cost":
+            catering = _load_fixture("catering.json")
+            venues = _load_fixture("venues.json")
+            venue_id = str(arguments["venue_id"])
+            party_size = int(arguments["party_size"])
+            duration_hours = int(arguments["duration_hours"])
+            catering_tier = str(arguments.get("catering_tier", "bar_snacks"))
+            venue = next(v for v in venues if v.get("id") == venue_id)
+            billable_hours = max(1, duration_hours)
+            subtotal = (
+                catering["base_rates_gbp_per_head"][catering_tier]
+                * catering["venue_modifiers"][venue_id]
+                * party_size
+                * billable_hours
+            )
+            service = subtotal * catering["service_charge_percent"] / 100
+            venue_cost = int(venue.get("hire_fee_gbp", 0)) + int(venue.get("min_spend_gbp", 0))
+            total_gbp = round(subtotal + service + venue_cost)
+            deposit_required_gbp = 0
+            if total_gbp >= 300:
+                deposit_required_gbp = round(total_gbp * (0.2 if total_gbp <= 1000 else 0.3))
+            return {
+                "venue_id": venue_id,
+                "party_size": party_size,
+                "duration_hours": duration_hours,
+                "catering_tier": catering_tier,
+                "subtotal_gbp": round(subtotal),
+                "service_gbp": round(service),
+                "total_gbp": total_gbp,
+                "deposit_required_gbp": deposit_required_gbp,
+            }
+        return None
+
+    records: list[ToolCallRecord] = []
+    for line in trace_path.read_text(encoding="utf-8").splitlines():
+        try:
+            event = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        payload = event.get("payload", {})
+        tool_name = payload.get("tool")
+        if event.get("event_type") != "executor.tool_called":
+            continue
+        arguments = dict(payload.get("arguments") or {})
+        output = _replay_output(tool_name, arguments)
+        if output is None:
+            continue
+        records.append(
+            ToolCallRecord(
+                tool_name=tool_name,
+                arguments=arguments,
+                output=output,
+            )
+        )
+    return records
+
+
 # ---------------------------------------------------------------------------
 # verify_dataflow — the main check
 # ---------------------------------------------------------------------------
@@ -137,12 +268,14 @@ def verify_dataflow(*args: Any) -> IntegrityResult:
 
     Assignment.md specifies verify_dataflow(session, flyer_content). Public
     scaffold tests historically called verify_dataflow(flyer_content), so this
-    accepts both forms and ignores the session argument.
+    accepts both forms. If called after a completed run in a fresh process, it
+    can reload matching persisted Ex5 trace evidence.
     """
+    session = None
     if len(args) == 1:
         flyer_content = args[0]
     elif len(args) == 2:
-        _, flyer_content = args
+        session, flyer_content = args
     else:
         raise TypeError("verify_dataflow expects flyer_content or session, flyer_content")
 
@@ -171,10 +304,16 @@ def verify_dataflow(*args: Any) -> IntegrityResult:
             ok=True, summary="no extractable facts in flyer (verified vacuously)"
         )
 
+    records = _TOOL_CALL_LOG
+    if not records:
+        trace_path = _trace_path_from_session(session) or _matching_trace_for_flyer(flyer_content)
+        if trace_path:
+            records = _records_from_trace(trace_path)
+
     verified: list[str] = []
     unverified: list[str] = []
     for fact in deduped:
-        if fact_appears_in_log(fact):
+        if fact_appears_in_log(fact, records):
             verified.append(fact)
         else:
             unverified.append(fact)

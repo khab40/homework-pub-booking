@@ -1,0 +1,20 @@
+{
+  "ticket_id": "tk_cbe20253",
+  "operation": "executor.run_subgoal/sg_1",
+  "started_at": "2026-05-01T06:11:43.351776+00:00",
+  "completed_at": "2026-05-01T06:11:49.451911+00:00",
+  "duration_ms": 6100,
+  "outputs": [
+    {
+      "path": "/Users/akhabalov-da_1/Documents/STUDY/nebius-ai-performance-engineering/code/homework-pub-booking/logs/examples/ex7-handoff-bridge/sess_806f69c91167/logs/tickets/tk_cbe20253/raw_output.json",
+      "sha256": "39762a9a7e053893f52da92877610fb9202538fb3b061e3960976e43b39b93e9",
+      "size_bytes": 878,
+      "content_type": "application/json"
+    }
+  ],
+  "metrics": {
+    "tool_calls": 1,
+    "turns_used": 1,
+    "handoff_requested": true
+  }
+}

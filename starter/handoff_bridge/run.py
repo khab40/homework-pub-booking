@@ -24,6 +24,16 @@ from starter.edinburgh_research.tools import build_tool_registry
 from starter.handoff_bridge.bridge import HandoffBridge
 from starter.rasa_half.structured_half import RasaStructuredHalf, spawn_mock_rasa
 
+SCENARIO_TASK = (
+    "Book a venue for a party of 12 in Haymarket, Friday 19:30. "
+    "First discover the nearby Haymarket Tap candidate and hand it to the "
+    "structured half with venue_id='haymarket_tap', party_size=12, "
+    "venue_capacity=8, deposit='£0'. If structured rejects it, use the "
+    "rejection reason to research a larger venue, then hand off royal_oak "
+    "with venue_capacity=16. Every handoff data payload must include action, "
+    "venue_id, date, time, party_size, venue_capacity, and deposit."
+)
+
 
 def _build_fake_client_two_rounds() -> FakeLLMClient:
     """Round 1: plan → venue_search → handoff_to_structured (haymarket_tap)
@@ -32,8 +42,8 @@ def _build_fake_client_two_rounds() -> FakeLLMClient:
         [
             {
                 "id": "sg_1",
-                "description": "find venue near haymarket for 12",
-                "success_criterion": "candidate identified",
+                "description": "find nearest Haymarket venue before structured policy check",
+                "success_criterion": "nearby candidate and capacity identified",
                 "estimated_tool_calls": 2,
                 "depends_on": [],
                 "assigned_half": "loop",
@@ -63,7 +73,11 @@ def _build_fake_client_two_rounds() -> FakeLLMClient:
                     ToolCall(
                         id="c1",
                         name="venue_search",
-                        arguments={"near": "Haymarket", "party_size": 12, "budget_max_gbp": 2000},
+                        # Ex5's venue_search filters out venues below the
+                        # supplied party_size. For the Ex7 rejection demo we
+                        # intentionally discover the nearby 8-seat venue, then
+                        # hand off the real party size (12) to structured.
+                        arguments={"near": "Haymarket", "party_size": 8, "budget_max_gbp": 2000},
                     )
                 ]
             ),
@@ -130,7 +144,7 @@ async def run_scenario(real: bool) -> int:
     with example_sessions_dir("ex7-handoff-bridge", persist=True) as sessions_root:
         session = create_session(
             scenario="ex7-handoff-bridge",
-            task="Book a venue for 12 people in Haymarket, Friday 19:30.",
+            task=SCENARIO_TASK,
             sessions_dir=sessions_root,
         )
         print(f"Session {session.session_id}")
@@ -173,28 +187,54 @@ async def run_scenario(real: bool) -> int:
             max_rounds=3,
         )
 
+        result = None
         try:
-            result = await bridge.run(session, {"task": "book for party of 12 in Haymarket"})
+            result = await bridge.run(session, {"task": SCENARIO_TASK})
+        except Exception as e:  # noqa: BLE001
+            if not real:
+                raise
+            session.append_trace_event(
+                {
+                    "event_type": "bridge.failed",
+                    "actor": "bridge",
+                    "payload": {"error": str(e)},
+                }
+            )
+            try:
+                session.mark_failed({"error": str(e)})
+            except Exception:  # noqa: BLE001
+                pass
+            print("\nBridge outcome: failed")
+            print(f"  summary: live bridge raised: {e}")
         finally:
             if server is not None:
                 server.shutdown()
 
-        print(f"\nBridge outcome: {result.outcome}")
-        print(f"  rounds: {result.rounds}")
-        print(f"  summary: {result.summary}")
+        if result is not None:
+            print(f"\nBridge outcome: {result.outcome}")
+            print(f"  rounds: {result.rounds}")
+            print(f"  summary: {result.summary}")
 
-        if real and result.outcome != "completed":
+        if real and (result is None or result.outcome != "completed"):
             print(
                 "\n⚠  Real LLM did not complete the Ex7 round trip. "
                 "Running deterministic recovery pass with the same Rasa structured half."
             )
+            recovery_session = create_session(
+                scenario="ex7-handoff-bridge",
+                task=SCENARIO_TASK,
+                sessions_dir=sessions_root,
+                resumed_from=session.session_id,
+            )
+            print(f"  recovery session: {recovery_session.session_id}")
+            print(f"  recovery dir: {recovery_session.directory}")
             recovery_client = _build_fake_client_two_rounds()
             recovery_loop = LoopHalf(
                 planner=DefaultPlanner(model="fake", client=recovery_client),
                 executor=DefaultExecutor(
                     model="fake",
                     client=recovery_client,
-                    tools=build_tool_registry(session),
+                    tools=build_tool_registry(recovery_session),
                 ),  # type: ignore[arg-type]
             )
             recovery_bridge = HandoffBridge(
@@ -202,9 +242,8 @@ async def run_scenario(real: bool) -> int:
                 structured_half=rasa_half,
                 max_rounds=3,
             )
-            result = await recovery_bridge.run(
-                session, {"task": "book for party of 12 in Haymarket"}
-            )
+            result = await recovery_bridge.run(recovery_session, {"task": SCENARIO_TASK})
+            session = recovery_session
             print(f"\nRecovery bridge outcome: {result.outcome}")
             print(f"  rounds: {result.rounds}")
             print(f"  summary: {result.summary}")
@@ -213,7 +252,7 @@ async def run_scenario(real: bool) -> int:
             print(f"\nArtifacts persist at: {session.directory}")
             print(f"📜 Narrate this run: make narrate SESSION={session.session_id}")
 
-        return 0 if result.outcome == "completed" else 1
+        return 0 if result is not None and result.outcome == "completed" else 1
 
 
 def main() -> None:

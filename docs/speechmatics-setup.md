@@ -37,21 +37,6 @@ back to text mode with a clear warning.
 Free tier: 8 hours of real-time streaming per month. An Ex8 conversation
 is typically 2-3 minutes; you can run it ~100 times before hitting the cap.
 
-## Optional: ElevenLabs for TTS
-
-If you want the manager's voice to actually sound like a voice (rather
-than just printed text), add ElevenLabs:
-
-1. [elevenlabs.io](https://elevenlabs.io/) → sign up.
-2. Create a voice or pick a default one.
-3. API key → copy.
-4. `.env`:
-   ```
-   ELEVENLABS_API_KEY=<paste>
-   ```
-
-Without ElevenLabs, voice mode does STT but prints manager replies as text.
-
 ## Troubleshooting
 
 - **`Device not found`**: your microphone isn't the system default.

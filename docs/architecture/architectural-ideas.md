@@ -47,14 +47,18 @@ sequenceDiagram
     CostTool->>Log: record cost output
     FlyerTool->>Log: record flyer write only
     FlyerTool-->>Verifier: flyer.md content
-    Verifier->>Log: read previous tool outputs
+    Verifier->>Log: read previous in-process tool outputs
+    Verifier->>Session: optionally locate matching persisted trace
+    Verifier->>Verifier: replay deterministic tool outputs from trace args
     Verifier->>Verifier: extract venue, weather, price facts
     Verifier-->>Verifier: pass only if exact facts are traceable
 ```
 
 The verifier protects against LLM fabrication. A fact in `flyer.md` must have
 appeared in an earlier read or calculation tool result. The flyer write itself
-does not verify its own content.
+does not verify its own content. When the check runs outside the original
+process, it can reload persisted Ex5 evidence by matching the flyer and
+replaying deterministic tool outputs from `trace.jsonl`.
 
 ## Structured Half Policy Boundary
 
@@ -109,7 +113,7 @@ flowchart LR
     Mode -->|real| Nebius[Nebius LLM]
     Mode -->|real| Rasa[Rasa localhost services]
     Mode -->|voice| STT[Speechmatics]
-    Mode -->|voice| TTS[ElevenLabs]
+    Mode -->|voice| TTS[ElevenLabs REST TTS]
 
     Fake --> Deterministic[deterministic expected path]
     Mock --> Deterministic

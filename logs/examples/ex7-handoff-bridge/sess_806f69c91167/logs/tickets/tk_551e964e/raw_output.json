@@ -1,0 +1,38 @@
+{
+  "subgoal_id": "sg_1",
+  "success": true,
+  "final_answer": "(handoff requested)",
+  "tool_calls_made": [
+    {
+      "name": "list_files",
+      "arguments": {
+        "path": "."
+      },
+      "success": true,
+      "summary": ".: 0 entries",
+      "requires_human_approval": false
+    },
+    {
+      "name": "handoff_to_structured",
+      "arguments": {
+        "reason": "No venue details file found in workspace to extract search parameters",
+        "context": "sg_1: Retrieve venue_id from venue database",
+        "data": {
+          "error": "Missing venue details file"
+        }
+      },
+      "success": true,
+      "summary": "handoff to structured half: No venue details file found in workspace to extract search parameters",
+      "requires_human_approval": false
+    }
+  ],
+  "turns_used": 2,
+  "handoff_requested": true,
+  "handoff_payload": {
+    "reason": "No venue details file found in workspace to extract search parameters",
+    "context": "sg_1: Retrieve venue_id from venue database",
+    "data": {
+      "error": "Missing venue details file"
+    }
+  }
+}

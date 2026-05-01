@@ -1,0 +1,22 @@
+[
+  {
+    "id": "sg_1",
+    "description": "Submit Haymarket Tap details to structured process for availability check",
+    "success_criterion": "Structured process returns acceptance or rejection response",
+    "estimated_tool_calls": 1,
+    "depends_on": [],
+    "assigned_half": "structured",
+    "status": "pending"
+  },
+  {
+    "id": "sg_2",
+    "description": "Research and submit royal_oak venue details if Haymarket Tap was rejected",
+    "success_criterion": "royal_oak venue is submitted with correct parameters",
+    "estimated_tool_calls": 1,
+    "depends_on": [
+      "sg_1"
+    ],
+    "assigned_half": "structured",
+    "status": "pending"
+  }
+]

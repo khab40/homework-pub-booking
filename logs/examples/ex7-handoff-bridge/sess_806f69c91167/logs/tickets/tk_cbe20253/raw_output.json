@@ -1,0 +1,25 @@
+{
+  "subgoal_id": "sg_1",
+  "success": true,
+  "final_answer": "(handoff requested)",
+  "tool_calls_made": [
+    {
+      "name": "handoff_to_structured",
+      "arguments": {
+        "reason": "No available function to retrieve venue_id by venue name",
+        "context": "Subgoal requires accessing venue database by name, but venue_search only filters by area/party_size/budget",
+        "data": {}
+      },
+      "success": true,
+      "summary": "handoff to structured half: No available function to retrieve venue_id by venue name",
+      "requires_human_approval": false
+    }
+  ],
+  "turns_used": 1,
+  "handoff_requested": true,
+  "handoff_payload": {
+    "reason": "No available function to retrieve venue_id by venue name",
+    "context": "Subgoal requires accessing venue database by name, but venue_search only filters by area/party_size/budget",
+    "data": {}
+  }
+}

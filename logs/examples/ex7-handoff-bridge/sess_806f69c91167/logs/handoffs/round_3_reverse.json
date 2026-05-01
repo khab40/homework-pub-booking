@@ -1,0 +1,54 @@
+{
+  "version": 1,
+  "from_half": "structured",
+  "to_half": "loop",
+  "written_at": "2026-05-01T06:12:49.374443+00:00",
+  "session_id": "sess_806f69c91167",
+  "reason": "normalisation failed: missing venue_id",
+  "context": "normalisation failed: missing venue_id",
+  "data": {
+    "task": "The structured half rejected the previous proposal. Reason: normalisation failed: missing venue_id. Produce an alternative.",
+    "context": {
+      "prior_result": {
+        "subgoal_id": "sg_1",
+        "executor_results": [
+          {
+            "subgoal_id": "sg_1",
+            "success": true,
+            "final_answer": "(handoff requested)",
+            "turns_used": 2,
+            "tool_calls_made": [
+              {
+                "name": "list_files",
+                "arguments": {
+                  "path": "."
+                },
+                "success": true,
+                "summary": ".: 0 entries",
+                "requires_human_approval": false
+              },
+              {
+                "name": "handoff_to_structured",
+                "arguments": {
+                  "reason": "No venue details file found in workspace to extract search parameters",
+                  "context": "sg_1: Retrieve venue_id from venue database",
+                  "data": {
+                    "error": "Missing venue details file"
+                  }
+                },
+                "success": true,
+                "summary": "handoff to structured half: No venue details file found in workspace to extract search parameters",
+                "requires_human_approval": false
+              }
+            ],
+            "handoff_requested": true
+          }
+        ]
+      },
+      "rejection_reason": "normalisation failed: missing venue_id",
+      "retry": true
+    }
+  },
+  "return_instructions": "Use the rejection reason to produce an alternative venue proposal, then hand off to structured again.",
+  "constraints_reminder": null
+}

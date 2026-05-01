@@ -43,12 +43,6 @@ VS Code with the "WSL" extension is the standard setup. Open your WSL
 terminal and run `code .` in the repo directory; VS Code launches with
 the WSL filesystem mounted.
 
-### Docker (for Ex6)
-
-Install Docker Desktop on Windows. In Settings → Resources → WSL
-Integration, enable it for your Ubuntu distro. You can then `docker ...`
-from inside WSL.
-
 ### Audio (for Ex8 voice mode)
 
 WSL 2 audio works via PulseAudio forwarding since Windows 11 22H2. If

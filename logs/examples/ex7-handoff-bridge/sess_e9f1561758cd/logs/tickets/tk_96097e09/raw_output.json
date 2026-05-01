@@ -1,0 +1,11 @@
+[
+  {
+    "id": "sg_1",
+    "description": "find nearest Haymarket venue before structured policy check",
+    "success_criterion": "nearby candidate and capacity identified",
+    "estimated_tool_calls": 2,
+    "depends_on": [],
+    "assigned_half": "loop",
+    "status": "pending"
+  }
+]

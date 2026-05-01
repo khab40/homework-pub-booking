@@ -30,16 +30,6 @@ Or the official installer:
 ```
 curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
-
-## Docker (only needed for Ex6)
-
-Download **Docker Desktop** from [docker.com](https://www.docker.com/products/docker-desktop/).
-Open it once after install so the daemon starts.
-
-Apple Silicon (M1/M2/M3) note: the Rasa image is x86. It will run under
-Rosetta 2, which Docker Desktop auto-installs. Slower than native arm64
-but works.
-
 ## Audio (only needed for Ex8 voice mode)
 
 macOS comes with working audio. Grant Terminal/iTerm microphone access

@@ -10,6 +10,11 @@ Ex7 demonstrates a bidirectional handoff round trip:
 4. Loop half finds a better venue.
 5. Structured half approves and the session completes.
 
+The default run is deterministic. Real mode uses a live Nebius-backed loop half
+first; if it fails to complete the full round trip, the runner creates a
+separate recovery session with the deterministic loop while keeping the same
+structured-half behavior.
+
 ## Diagram
 
 ```mermaid
@@ -23,16 +28,16 @@ sequenceDiagram
 
     Make->>Bridge: start "party of 12, Haymarket, Friday 19:30"
     Bridge->>LoopAgent: research booking option
-    LoopAgent->>Tools: venue_search(Haymarket, 12)
+    LoopAgent->>Tools: venue_search(Haymarket, 8)
     Tools-->>LoopAgent: haymarket_tap, capacity 8
-    LoopAgent->>Store: write forward handoff
+    LoopAgent->>Store: write round_1_forward
     Bridge->>Structured: dispatch booking intent
     Structured-->>Bridge: reject party exceeds cap
-    Bridge->>Store: write return handoff
+    Bridge->>Store: write round_1_reverse
     Bridge->>LoopAgent: re-research with rejection reason
     LoopAgent->>Tools: venue_search(alternative, 12)
     Tools-->>LoopAgent: royal_oak, capacity 16
-    LoopAgent->>Store: write second forward handoff
+    LoopAgent->>Store: write round_2_forward
     Bridge->>Structured: dispatch revised booking intent
     Structured-->>Bridge: approve booking
     Bridge-->>Make: complete with final booking
@@ -46,6 +51,11 @@ sequenceDiagram
 - The final booking is produced only after the structured half approves.
 - `ex7-real` uses a real LLM in the loop, while the default target uses a
   deterministic script and mock Rasa path.
+- The first scripted search intentionally asks for 8 seats near Haymarket so the
+  loop can discover `haymarket_tap`; the handoff then sends the real party size
+  of 12 and venue capacity of 8 so the structured half can reject it.
+- Handoff JSON is archived under `logs/handoffs/round_N_forward.json` and
+  `round_N_reverse.json`, which makes the recovery path auditable.
 
 ## Primary Code
 

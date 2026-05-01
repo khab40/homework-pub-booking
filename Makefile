@@ -252,15 +252,16 @@ rasa-clean: ## Remove Rasa's trained models and cache
 
 .PHONY: logs
 logs: ## Print the path to your most recent session (across all scenarios)
-	@$(UV) run python -c "import sys; sys.path.insert(0, 'scripts'); \
+	@$(PY) -c "import sys; sys.path.insert(0, 'scripts'); \
 		from narrator import _platform_data_dir; \
 		from pathlib import Path; \
-		cands = []; \
-		[cands.extend(Path('sessions').glob('sess_*'))] if Path('sessions').exists() else None; \
-		[cands.extend(Path('logs').glob('examples/*/sess_*'))] if Path('logs').exists() else None; \
+		local = []; \
+		[local.extend(Path('sessions').glob('sess_*'))] if Path('sessions').exists() else None; \
+		[local.extend(Path('logs').glob('examples/*/sess_*'))] if Path('logs').exists() else None; \
+		cands = [c for c in local if c.is_dir()]; \
 		root = _platform_data_dir(); \
-		[cands.extend(root.glob('examples/*/sess_*'))] if root.exists() else None; \
-		cands = [c for c in cands if c.is_dir()]; \
+		platform = list(root.glob('examples/*/sess_*')) if root.exists() else []; \
+		cands = cands or [c for c in platform if c.is_dir()]; \
 		cands.sort(key=lambda p: p.stat().st_mtime, reverse=True); \
 		print(cands[0] if cands else '(no sessions yet)')"
 
