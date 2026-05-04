@@ -1,0 +1,20 @@
+{
+  "ticket_id": "tk_70047a15",
+  "operation": "executor.run_subgoal/sg_1",
+  "started_at": "2026-05-04T06:24:10.839810+00:00",
+  "completed_at": "2026-05-04T06:24:10.841129+00:00",
+  "duration_ms": 1,
+  "outputs": [
+    {
+      "path": "/Users/akhabalov-da_1/Documents/STUDY/nebius-ai-performance-engineering/code/homework-pub-booking/logs/examples/ex5-edinburgh-research/sess_ca8812e9811b/logs/tickets/tk_70047a15/raw_output.json",
+      "sha256": "38343a87558db89307c1896c9f90223d7d4d77a4fc053c0535ff5fe24dd5db74",
+      "size_bytes": 1941,
+      "content_type": "application/json"
+    }
+  ],
+  "metrics": {
+    "tool_calls": 5,
+    "turns_used": 4,
+    "handoff_requested": false
+  }
+}

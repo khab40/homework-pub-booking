@@ -25,7 +25,7 @@ the code paths that catch or mitigate each one.
 ### Ex5 Qwen `venue_search` Spiral
 
 Observed in the committed Ex5 evidence. `answers/ex5_loop_scenario.md` cites
-`logs/examples/ex5-edinburgh-research/sess_10a5d8ccaffb`, where the live LLM
+`logs/examples/ex5-edinburgh-research/sess_0d401050d62b`, where the live LLM
 called `venue_search` repeatedly instead of following the required sequence.
 
 Current catch:
@@ -40,12 +40,11 @@ Current catch:
 - `starter/edinburgh_research/run.py` prints the tools that did run when no
   flyer is produced, and real mode can run a deterministic recovery pass.
 
-### Ex7 Live LLM Bad Handoff
+### Ex7 Live LLM Planner Failure
 
 Observed in the committed Ex7 evidence. `answers/ex7_handoff_bridge.md` cites
-`logs/examples/ex7-handoff-bridge/sess_806f69c91167`, where the live loop handed
-incomplete data to structured Rasa, including empty payloads and missing
-`venue_id`.
+`logs/examples/ex7-handoff-bridge/sess_0b1bfe855664`, where the live planner
+returned empty content before a valid handoff could be produced.
 
 Current catch:
 
@@ -54,7 +53,7 @@ Current catch:
 - If real mode does not complete, the runner creates a separate deterministic
   recovery session using the same structured half.
 - The successful recovery evidence is
-  `logs/examples/ex7-handoff-bridge/sess_e9f1561758cd`.
+  `logs/examples/ex7-handoff-bridge/sess_085e42123ab0`.
 - That recovery session records `fallback_from_action: resume_from_loop`
   because live Rasa did not route `resume_from_loop` directly; the structured
   half retried as `confirm_booking`.

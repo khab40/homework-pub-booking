@@ -1,1 +1,0 @@
-{"name": "The Royal Oak", "address": "1 Infirmary St, Edinburgh EH1 1LT", "capacity": 16, "hire_fee_gbp": 50, "min_spend_gbp": 400, "features": {"licensed_hours": "11:00-01:00", "accepts_card": true, "outdoor_space": false, "manager_email": "royal-oak@example.invalid"}}

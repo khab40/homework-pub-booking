@@ -1,1 +1,0 @@
-Executor completed subgoal sg_2 in 5 turn(s). Made 5 tool call(s): list_files, list_files, read_file, generate_flyer, handoff_to_structured. Handoff to structured half requested.

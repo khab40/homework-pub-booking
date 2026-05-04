@@ -1,0 +1,10 @@
+{"event_type": "voice.utterance_in", "actor": "user", "timestamp": "2026-05-04T03:37:12.806150+00:00", "payload": {"text": "Want to book a pub .", "turn": 0, "mode": "voice"}}
+{"event_type": "voice.utterance_out", "actor": "manager", "timestamp": "2026-05-04T03:37:13.546377+00:00", "payload": {"text": "How many in your party?", "turn": 0, "mode": "voice"}}
+{"event_type": "voice.utterance_in", "actor": "user", "timestamp": "2026-05-04T03:37:20.448288+00:00", "payload": {"text": "Five .", "turn": 1, "mode": "voice"}}
+{"event_type": "voice.utterance_out", "actor": "manager", "timestamp": "2026-05-04T03:37:21.301099+00:00", "payload": {"text": "Aye, we can do that. I'll pencil you in. What's the date and time?", "turn": 1, "mode": "voice"}}
+{"event_type": "voice.utterance_in", "actor": "user", "timestamp": "2026-05-04T03:37:31.450582+00:00", "payload": {"text": "Today , 6 p.m. .", "turn": 2, "mode": "voice"}}
+{"event_type": "voice.utterance_out", "actor": "manager", "timestamp": "2026-05-04T03:37:32.423126+00:00", "payload": {"text": "Aye, we can do that. I'll pencil you in for today at 6 p.m. What's the contact number?", "turn": 2, "mode": "voice"}}
+{"event_type": "voice.utterance_in", "actor": "user", "timestamp": "2026-05-04T03:37:47.112332+00:00", "payload": {"text": "591626398 .", "turn": 3, "mode": "voice"}}
+{"event_type": "voice.utterance_out", "actor": "manager", "timestamp": "2026-05-04T03:37:47.836343+00:00", "payload": {"text": "Got it, 591626398. See you at 6.", "turn": 3, "mode": "voice"}}
+{"event_type": "voice.utterance_in", "actor": "user", "timestamp": "2026-05-04T03:37:58.200992+00:00", "payload": {"text": "See you . Goodbye .", "turn": 4, "mode": "voice"}}
+{"event_type": "voice.utterance_out", "actor": "manager", "timestamp": "2026-05-04T03:37:59.005495+00:00", "payload": {"text": "Cheerio.", "turn": 4, "mode": "voice"}}

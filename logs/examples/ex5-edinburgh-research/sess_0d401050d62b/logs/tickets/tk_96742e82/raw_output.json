@@ -1,0 +1,81 @@
+{
+  "subgoal_id": "sg_1",
+  "success": true,
+  "final_answer": "(handoff requested)",
+  "tool_calls_made": [
+    {
+      "name": "venue_search",
+      "arguments": {
+        "near": "Edinburgh City Center",
+        "party_size": 50,
+        "budget_max_gbp": 500
+      },
+      "success": true,
+      "summary": "venue_search(Edinburgh City Center, party=50): 0 result(s)",
+      "requires_human_approval": false
+    },
+    {
+      "name": "venue_search",
+      "arguments": {
+        "near": "Edinburgh",
+        "party_size": 50,
+        "budget_max_gbp": 1000
+      },
+      "success": true,
+      "summary": "venue_search(Edinburgh, party=50): 0 result(s)",
+      "requires_human_approval": false
+    },
+    {
+      "name": "venue_search",
+      "arguments": {
+        "near": "Edinburgh",
+        "party_size": 30,
+        "budget_max_gbp": 1000
+      },
+      "success": true,
+      "summary": "venue_search(Edinburgh, party=30): 0 result(s)",
+      "requires_human_approval": false
+    },
+    {
+      "name": "list_files",
+      "arguments": {
+        "path": "."
+      },
+      "success": true,
+      "summary": ".: 0 entries",
+      "requires_human_approval": false
+    },
+    {
+      "name": "handoff_to_structured",
+      "arguments": {
+        "reason": "Venue search tools are not returning results and no pre-existing venue data files exist in the workspace. Need to manually compile information.",
+        "context": "Researching Edinburgh venues for 3-5 venue list with location/capacity details",
+        "data": {
+          "status": "blocked",
+          "attempts_made": 3,
+          "tools_used": [
+            "venue_search",
+            "list_files"
+          ]
+        }
+      },
+      "success": true,
+      "summary": "handoff to structured half: Venue search tools are not returning results and no pre-existing venue data files exist in the workspace. Need to manually compile information.",
+      "requires_human_approval": false
+    }
+  ],
+  "turns_used": 5,
+  "handoff_requested": true,
+  "handoff_payload": {
+    "reason": "Venue search tools are not returning results and no pre-existing venue data files exist in the workspace. Need to manually compile information.",
+    "context": "Researching Edinburgh venues for 3-5 venue list with location/capacity details",
+    "data": {
+      "status": "blocked",
+      "attempts_made": 3,
+      "tools_used": [
+        "venue_search",
+        "list_files"
+      ]
+    }
+  }
+}

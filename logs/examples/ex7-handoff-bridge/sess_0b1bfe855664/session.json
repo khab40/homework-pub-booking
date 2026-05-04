@@ -1,0 +1,23 @@
+{
+  "session_id": "sess_0b1bfe855664",
+  "version": 1,
+  "created_at": "2026-05-04T08:32:25.346023+00:00",
+  "updated_at": "2026-05-04T08:33:12.535074+00:00",
+  "scenario": "ex7-handoff-bridge",
+  "state": "failed",
+  "user_id": null,
+  "current_half": "loop",
+  "planner": {},
+  "executor": {},
+  "structured": {},
+  "memory": {},
+  "handoff_history": [],
+  "bare_mode": false,
+  "config_overrides": {},
+  "result": {
+    "reason": {
+      "error": "[SA_VAL_INVALID_PLANNER_OUTPUT] planner returned empty content"
+    }
+  },
+  "resumed_from": null
+}

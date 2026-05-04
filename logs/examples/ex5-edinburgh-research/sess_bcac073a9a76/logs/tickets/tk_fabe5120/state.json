@@ -1,9 +1,0 @@
-{
-  "ticket_id": "tk_fabe5120",
-  "operation": "executor.run_subgoal/sg_1",
-  "state": "success",
-  "started_at": "2026-04-25T07:46:50.964888+00:00",
-  "completed_at": "2026-04-25T07:47:33.909821+00:00",
-  "error_code": null,
-  "error_message": null
-}

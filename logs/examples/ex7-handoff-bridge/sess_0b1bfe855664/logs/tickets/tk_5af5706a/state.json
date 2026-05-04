@@ -1,0 +1,9 @@
+{
+  "ticket_id": "tk_5af5706a",
+  "operation": "planner.plan",
+  "state": "error",
+  "started_at": "2026-05-04T08:32:25.724659+00:00",
+  "completed_at": "2026-05-04T08:33:12.532668+00:00",
+  "error_code": "SA_VAL_INVALID_PLANNER_OUTPUT",
+  "error_message": "planner returned empty content"
+}

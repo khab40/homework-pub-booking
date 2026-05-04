@@ -1,0 +1,8 @@
+{"event_type": "voice.utterance_in", "actor": "user", "timestamp": "2026-05-04T03:19:47.796951+00:00", "payload": {"text": "wish to book pub", "turn": 0, "mode": "text"}}
+{"event_type": "voice.utterance_out", "actor": "manager", "timestamp": "2026-05-04T03:19:48.797650+00:00", "payload": {"text": "How many in your party?", "turn": 0, "mode": "text"}}
+{"event_type": "voice.utterance_in", "actor": "user", "timestamp": "2026-05-04T03:19:50.796580+00:00", "payload": {"text": "5", "turn": 1, "mode": "text"}}
+{"event_type": "voice.utterance_out", "actor": "manager", "timestamp": "2026-05-04T03:19:51.452910+00:00", "payload": {"text": "Aye, we can do that. I'll pencil you in. What's the date and time?", "turn": 1, "mode": "text"}}
+{"event_type": "voice.utterance_in", "actor": "user", "timestamp": "2026-05-04T03:20:02.388383+00:00", "payload": {"text": "today at 8 PM", "turn": 2, "mode": "text"}}
+{"event_type": "voice.utterance_out", "actor": "manager", "timestamp": "2026-05-04T03:20:03.450529+00:00", "payload": {"text": "Aye, we can do that. I'll pencil you in for today at 8 PM. What's the contact number?", "turn": 2, "mode": "text"}}
+{"event_type": "voice.utterance_in", "actor": "user", "timestamp": "2026-05-04T03:20:08.530865+00:00", "payload": {"text": "591626309", "turn": 3, "mode": "text"}}
+{"event_type": "voice.utterance_out", "actor": "manager", "timestamp": "2026-05-04T03:20:09.217771+00:00", "payload": {"text": "Got it, 591626309. See you at 8.", "turn": 3, "mode": "text"}}

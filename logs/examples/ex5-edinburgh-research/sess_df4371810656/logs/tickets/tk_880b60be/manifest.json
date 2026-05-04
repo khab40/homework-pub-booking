@@ -1,0 +1,21 @@
+{
+  "ticket_id": "tk_880b60be",
+  "operation": "planner.plan",
+  "started_at": "2026-05-04T03:29:17.393163+00:00",
+  "completed_at": "2026-05-04T03:29:17.393492+00:00",
+  "duration_ms": 0,
+  "outputs": [
+    {
+      "path": "/Users/akhabalov-da_1/Documents/STUDY/nebius-ai-performance-engineering/code/homework-pub-booking/logs/examples/ex5-edinburgh-research/sess_df4371810656/logs/tickets/tk_880b60be/raw_output.json",
+      "sha256": "6d0221a85640f6e63248ce02dc8de75c3c220877f91fda1eff583ecdada5df2b",
+      "size_bytes": 575,
+      "content_type": "application/json"
+    }
+  ],
+  "metrics": {
+    "num_subgoals": 2,
+    "llm_tokens_in": 10,
+    "llm_tokens_out": 10,
+    "llm_model": "fake"
+  }
+}

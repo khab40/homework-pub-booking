@@ -1,0 +1,12 @@
+{"event_type": "voice.utterance_in", "actor": "user", "timestamp": "2026-05-04T09:25:26.865184+00:00", "payload": {"text": "want to book a pub tonight", "turn": 0, "mode": "text"}}
+{"event_type": "voice.utterance_out", "actor": "manager", "timestamp": "2026-05-04T09:25:27.809457+00:00", "payload": {"text": "How many in your party?", "turn": 0, "mode": "text"}}
+{"event_type": "voice.utterance_in", "actor": "user", "timestamp": "2026-05-04T09:25:30.849149+00:00", "payload": {"text": "20", "turn": 1, "mode": "text"}}
+{"event_type": "voice.utterance_out", "actor": "manager", "timestamp": "2026-05-04T09:25:31.478686+00:00", "payload": {"text": "Too many, I'm afraid. Try The Royal Oak, they can handle a crowd that size.", "turn": 1, "mode": "text"}}
+{"event_type": "voice.utterance_in", "actor": "user", "timestamp": "2026-05-04T09:25:43.267782+00:00", "payload": {"text": "can you call them?", "turn": 2, "mode": "text"}}
+{"event_type": "voice.utterance_out", "actor": "manager", "timestamp": "2026-05-04T09:25:43.915667+00:00", "payload": {"text": "Nae, you'll need to contact them yourself.", "turn": 2, "mode": "text"}}
+{"event_type": "voice.utterance_in", "actor": "user", "timestamp": "2026-05-04T09:25:51.506657+00:00", "payload": {"text": "and if 8?", "turn": 3, "mode": "text"}}
+{"event_type": "voice.utterance_out", "actor": "manager", "timestamp": "2026-05-04T09:25:52.412481+00:00", "payload": {"text": "Aye, we can do that. I'll pencil you in. What's the contact number?", "turn": 3, "mode": "text"}}
+{"event_type": "voice.utterance_in", "actor": "user", "timestamp": "2026-05-04T09:26:00.037732+00:00", "payload": {"text": "591626398", "turn": 4, "mode": "text"}}
+{"event_type": "voice.utterance_out", "actor": "manager", "timestamp": "2026-05-04T09:26:00.903366+00:00", "payload": {"text": "I'll pencil you in for tonight. What time were you thinkin'?", "turn": 4, "mode": "text"}}
+{"event_type": "voice.utterance_in", "actor": "user", "timestamp": "2026-05-04T09:26:07.089051+00:00", "payload": {"text": "6 PM", "turn": 5, "mode": "text"}}
+{"event_type": "voice.utterance_out", "actor": "manager", "timestamp": "2026-05-04T09:26:07.966743+00:00", "payload": {"text": "Aye, 6 PM it is. See you then.", "turn": 5, "mode": "text"}}

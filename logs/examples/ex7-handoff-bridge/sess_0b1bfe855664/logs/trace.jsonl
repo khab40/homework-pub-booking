@@ -1,0 +1,3 @@
+{"event_type": "bridge.round_start", "actor": "bridge", "payload": {"round": 1, "half": "loop"}}
+{"event_type": "planner.called", "actor": "default", "timestamp": "2026-05-04T08:32:25.724137+00:00", "payload": {"task_preview": "Book a venue for a party of 12 in Haymarket, Friday 19:30. First discover the nearby Haymarket Tap candidate and hand it to the structured half with venue_id='haymarket_tap', party_size=12, venue_capa"}}
+{"event_type": "bridge.failed", "actor": "bridge", "payload": {"error": "[SA_VAL_INVALID_PLANNER_OUTPUT] planner returned empty content"}}

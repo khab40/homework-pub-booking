@@ -1,9 +1,0 @@
-{
-  "ticket_id": "tk_3ce0a069",
-  "operation": "executor.run_subgoal/sg_1",
-  "state": "success",
-  "started_at": "2026-05-01T06:12:50.739188+00:00",
-  "completed_at": "2026-05-01T06:12:50.740750+00:00",
-  "error_code": null,
-  "error_message": null
-}
