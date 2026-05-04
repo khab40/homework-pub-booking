@@ -16,18 +16,25 @@ Graceful degradation is implemented: missing `SPEECHMATICS_KEY` falls back to
 text mode, and missing `ELEVENLABS_API_KEY` keeps STT active but prints replies
 instead of speaking them.
 
-I observed both modes in session logs. Text session `sess_0a9ad448abc1` recorded
-four user-manager turns with `voice.utterance_in` and `voice.utterance_out`.
-Voice session `sess_e3d3c22af683` recorded five voice-mode turns, including a
-decline for party size 20 and an acceptance after the user changed the request
-to five people. I did not find an Ex8 `--real` non-completion comparable to Ex5:
-the observed LLM behavior followed the persona policy rather than inventing a
-reservation. The manager rejected oversize parties in the trace and completed
-the conversation only after the request was changed to an acceptable party size.
+I observed both modes in the persisted example session logs. The text example
+records four user-manager turns with matching `voice.utterance_in` and
+`voice.utterance_out` events, ending after the manager collected party size,
+date/time, and contact number. The voice example records five voice-mode turns:
+the user asks to book, gives a party size of five, supplies "today, 6 p.m.",
+provides a contact number, and then says goodbye. In both modes, the trace
+captures the transcript text and `mode` field for every turn, so the grading
+evidence does not depend on replaying microphone audio.
+
+I did not observe an Ex8 real-mode non-completion comparable to Ex5. The
+manager persona stayed within the booking policy and asked for missing booking
+details before confirming. The main operational risk I observed was not policy
+drift but pipeline fragility around optional voice dependencies, which is why
+voice mode degrades to text output when TTS is unavailable and now requests raw
+PCM from ElevenLabs instead of decoding MP3 locally.
 
 ## Citations
 
-- Text trace: `logs/homework/ex8/sess_0a9ad448abc1/logs/trace.jsonl`, turns 0-3, mode `text`.
-- Voice trace: `logs/homework/ex8/sess_e3d3c22af683/logs/trace.jsonl`, turns 0-4, mode `voice`.
+- Text trace: `logs/examples/ex8-voice-pipeline/sess_68a359c439e8/logs/trace.jsonl`, turns 0-3, mode `text`.
+- Voice trace: `logs/examples/ex8-voice-pipeline/sess_6f68d9bd9f2f/logs/trace.jsonl`, turns 0-4, mode `voice`.
 - Persona implementation: `starter/voice_pipeline/manager_persona.py`.
 - STT/TTS loop and fallback behavior: `starter/voice_pipeline/voice_loop.py`.
