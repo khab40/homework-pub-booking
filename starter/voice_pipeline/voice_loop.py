@@ -339,8 +339,9 @@ async def _transcribe_speechmatics(
 # ElevenLabs TTS + playback
 # ---------------------------------------------------------------------------
 async def _speak_elevenlabs(text: str, api_key: str, sd) -> None:
-    """Call ElevenLabs TTS, get MP3 back, play it."""
+    """Call ElevenLabs TTS, get raw PCM back, play it."""
     import httpx
+    import numpy as np
 
     voice_id = os.environ.get("ELEVENLABS_VOICE_ID", "EXAVITQu4vr4xnSDxMaL").strip()
     model_id = os.environ.get("ELEVENLABS_MODEL_ID", "eleven_multilingual_v2").strip()
@@ -356,35 +357,25 @@ async def _speak_elevenlabs(text: str, api_key: str, sd) -> None:
     headers = {
         "xi-api-key": api_key,
         "Content-Type": "application/json",
-        "Accept": "audio/mpeg",
+        "Accept": "application/octet-stream",
     }
 
     async with httpx.AsyncClient(timeout=30.0) as http:
-        resp = await http.post(url, json=payload, headers=headers)
+        resp = await http.post(
+            url,
+            params={"output_format": f"pcm_{SAMPLE_RATE}"},
+            json=payload,
+            headers=headers,
+        )
         if resp.status_code != 200:
             raise RuntimeError(f"ElevenLabs {resp.status_code}: {resp.text[:200]}")
-        mp3_bytes = resp.content
+        pcm_bytes = resp.content
 
-    # Decode MP3 → PCM via pydub (stdlib can't handle mp3)
-    try:
-        from io import BytesIO
-
-        from pydub import AudioSegment  # type: ignore[import-not-found]
-    except ImportError:
-        print(
-            "   (pydub not installed; can't decode mp3 for playback — "
-            "install with: uv sync --extra voice)",
-            file=sys.stderr,
-        )
+    if not pcm_bytes:
         return
 
-    segment = AudioSegment.from_file(BytesIO(mp3_bytes), format="mp3")
-    # Resample + convert to int16 mono for sounddevice
-    segment = segment.set_frame_rate(SAMPLE_RATE).set_channels(1).set_sample_width(2)
-
-    import numpy as np
-
-    samples = np.array(segment.get_array_of_samples(), dtype=np.int16)
+    # ElevenLabs pcm_16000 is raw signed 16-bit little-endian mono PCM.
+    samples = np.frombuffer(pcm_bytes, dtype="<i2")
     sd.play(samples, samplerate=SAMPLE_RATE)
     sd.wait()
 

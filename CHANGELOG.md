@@ -3,6 +3,23 @@
 All notable changes to the homework are documented here. The repository version
 is pinned in `pyproject.toml`; cohort tags use the same `vYYYY.MM.N` shape.
 
+## [Unreleased] - 2026-05-04
+
+### Fixed
+
+- Tightened Ex5 money-fact extraction so spaced and comma-formatted pound
+  amounts such as `£ 540` and `£1,200` are normalized and verified instead of
+  being missed.
+- Kept Ex5 flyer facts from being verified against `generate_flyer` provenance
+  and added regression coverage for that behavior.
+- Corrected Ex5 `generate_flyer` to report actual UTF-8 bytes written rather
+  than Python character count.
+- Moved Ex8 sessions to the same persisted `examples/` session tree used by
+  Ex5, Ex6, and Ex7.
+- Removed `pydub` from Ex8 voice playback by requesting ElevenLabs raw
+  `pcm_16000` audio and playing it directly with `sounddevice`, avoiding the
+  Python 3.12 `SyntaxWarning` emitted by `pydub`.
+
 ## [2026.04.0] - 2026-05-01
 
 Final homework version for Nebius Academy Module 1 Week 5.

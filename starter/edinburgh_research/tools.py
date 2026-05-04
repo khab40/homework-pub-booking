@@ -334,7 +334,8 @@ Deposit requirements are shown in the booking facts above.
     flyer_path = session.workspace_dir / "flyer.md"
     flyer_path.parent.mkdir(parents=True, exist_ok=True)
     flyer_path.write_text(flyer, encoding="utf-8")
-    output = {"path": "workspace/flyer.md", "bytes_written": len(flyer)}
+    bytes_written = len(flyer.encode("utf-8"))
+    output = {"path": "workspace/flyer.md", "bytes_written": bytes_written}
     record_tool_call("generate_flyer", arguments, output)
     return ToolResult(
         success=True,

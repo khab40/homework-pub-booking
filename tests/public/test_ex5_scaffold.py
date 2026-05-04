@@ -71,8 +71,24 @@ def test_fact_appears_in_log_helper() -> None:
     integrity.record_tool_call("t", {}, {"nested": {"total_gbp": 540}})
     assert integrity.fact_appears_in_log(540)
     assert integrity.fact_appears_in_log("£540")  # leading £ stripped
+    assert integrity.fact_appears_in_log("£ 540")  # spaced currency is normalised
     assert not integrity.fact_appears_in_log(999)
     integrity.clear_log()
+
+
+def test_fact_appears_in_log_ignores_generate_flyer() -> None:
+    """Flyer-writing inputs are not independent provenance."""
+    integrity.clear_log()
+    integrity.record_tool_call("generate_flyer", {}, {"event_details": {"total_gbp": 540}})
+    assert not integrity.fact_appears_in_log("£540")
+    integrity.clear_log()
+
+
+def test_extract_money_facts_accepts_spaced_pound_amounts() -> None:
+    assert integrity.extract_money_facts("Tickets cost £ 540 and deposit £1,200.") == [
+        "£540",
+        "£1200",
+    ]
 
 
 # ─── tools module structure ─────────────────────────────────────────
@@ -121,6 +137,39 @@ def test_generate_flyer_is_not_parallel_safe() -> None:
             "generate_flyer writes a file; it must be registered with "
             "parallel_safe=False. Penalty: grader deducts Mechanical points."
         )
+
+
+def test_generate_flyer_reports_bytes_written() -> None:
+    """bytes_written should be UTF-8 bytes, not Python character count."""
+    import tempfile
+
+    from sovereign_agent.session.directory import create_session
+
+    from starter.edinburgh_research.tools import generate_flyer
+
+    with tempfile.TemporaryDirectory() as td:
+        session_root = Path(td) / "sessions"
+        session_root.mkdir()
+        session = create_session(scenario="test", sessions_dir=session_root)
+        result = generate_flyer(
+            session,
+            {
+                "venue_name": "Haymarket Tap",
+                "venue_address": "12 Dalry Rd, Edinburgh EH11 2BG",
+                "date": "2026-04-25",
+                "time": "19:30",
+                "party_size": 6,
+                "condition": "cloudy",
+                "temperature_c": 12,
+                "total_gbp": 556,
+                "deposit_required_gbp": 111,
+            },
+        )
+        flyer_path = session.workspace_dir / "flyer.md"
+        text = flyer_path.read_text(encoding="utf-8")
+        assert result.output["bytes_written"] == flyer_path.stat().st_size
+        assert result.output["bytes_written"] == len(text.encode("utf-8"))
+        assert result.output["bytes_written"] > len(text)
 
 
 def test_read_only_tools_are_parallel_safe() -> None:

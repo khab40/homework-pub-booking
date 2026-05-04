@@ -19,6 +19,7 @@ import json
 import re
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
+from decimal import Decimal, InvalidOperation
 from html import unescape
 from pathlib import Path
 from typing import Any
@@ -65,10 +66,14 @@ class IntegrityResult:
 # Helpers
 # ---------------------------------------------------------------------------
 def extract_money_facts(text: str) -> list[str]:
-    """Find all £<number> occurrences, HTML tags stripped or not."""
+    """Find all pound-denominated amounts, HTML tags stripped or not."""
     # Strip HTML tags first so e.g. <dd>£540</dd> matches cleanly.
     stripped = re.sub(r"<[^>]+>", " ", text)
-    return re.findall(r"£\d+(?:\.\d+)?", stripped)
+    facts: list[str] = []
+    for match in re.finditer(r"£\s*\d[\d,\s]*(?:\.\d+)?", stripped):
+        amount = re.sub(r"[\s,]", "", match.group(0))
+        facts.append(amount)
+    return facts
 
 
 def extract_temperature_facts(text: str) -> list[str]:
@@ -117,11 +122,11 @@ def extract_labelled_facts(text: str) -> list[str]:
 
 def fact_appears_in_log(fact: Any, log: list[ToolCallRecord] | None = None) -> bool:
     records = log if log is not None else _TOOL_CALL_LOG
-    target = str(fact).lower().strip("£°c ")
+    target = _normalise_scalar_fact(fact)
 
     def _scan(obj: Any) -> bool:
         if isinstance(obj, (str, int, float)):
-            return str(obj).lower().strip("£°c ") == target
+            return _normalise_scalar_fact(obj) == target
         if isinstance(obj, dict):
             return any(_scan(v) for v in obj.values())
         if isinstance(obj, (list, tuple, set)):
@@ -129,6 +134,19 @@ def fact_appears_in_log(fact: Any, log: list[ToolCallRecord] | None = None) -> b
         return False
 
     return any(_scan(r.output) for r in records if r.tool_name != "generate_flyer")
+
+
+def _normalise_scalar_fact(value: Any) -> str:
+    text = str(value).casefold().strip()
+    text = re.sub(r"^\s*£\s*", "", text)
+    text = text.replace(",", "")
+    text = re.sub(r"\s*°?\s*c\s*$", "", text)
+    text = text.strip()
+    try:
+        number = Decimal(text)
+    except InvalidOperation:
+        return text
+    return format(number.normalize(), "f")
 
 
 def _trace_path_from_session(session: Any) -> Path | None:
