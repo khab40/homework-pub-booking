@@ -19,6 +19,9 @@ is pinned in `pyproject.toml`; cohort tags use the same `vYYYY.MM.N` shape.
 - Removed `pydub` from Ex8 voice playback by requesting ElevenLabs raw
   `pcm_16000` audio and playing it directly with `sounddevice`, avoiding the
   Python 3.12 `SyntaxWarning` emitted by `pydub`.
+- Pruned committed session evidence so `logs/` contains only May 4 Ex5-Ex8
+  runs, and refreshed answer/documentation citations to point at the retained
+  sessions.
 
 ## [2026.04.0] - 2026-05-01
 
