@@ -21,6 +21,9 @@ returned `Structured half outcome: complete` with booking reference
 6, and deposit £200. The session trace now records `structured.session_started`
 and `structured.completed`, so the real structured-half run is narratable and
 has a persisted local evidence artifact.
+The structured half does not use the framework `MemoryStore`; its short-lived
+dialog memory is Rasa tracker metadata and slots, while the durable memory for
+debugging is the session trace and `session.json`.
 
 ## Citations
 

@@ -18,6 +18,10 @@ result. The implementation also keeps `generate_flyer` non-parallel-safe because
 it writes to the session workspace. The important lesson from Ex5 is that the
 LLM can assemble the artifact, but the verifier is the control that prevents the
 artifact from silently inventing prices, venue names, or weather.
+Memory in this exercise is deliberately small and auditable: tool outputs are
+kept in the in-process `_TOOL_CALL_LOG` during the run, then the verifier can
+fall back to the durable session trace when checking evidence after the process
+has exited.
 
 The real LLM runs show why this guardrail matters. In `make ex5-real` session
 `sess_0d401050d62b`, Qwen drifted away from the required Haymarket booking and

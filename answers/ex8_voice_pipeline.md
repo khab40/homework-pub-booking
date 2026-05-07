@@ -24,6 +24,9 @@ the user asks to book, gives a party size of five, supplies "today, 6 p.m.",
 provides a contact number, and then says goodbye. In both modes, the trace
 captures the transcript text and `mode` field for every turn, so the grading
 evidence does not depend on replaying microphone audio.
+Conversation memory is local to the loop while the persona responds, but the
+auditable memory is the persisted session record: per-turn trace events and, in
+voice mode, the saved turn audio artifacts in the session workspace.
 
 I did not observe an Ex8 real-mode non-completion comparable to Ex5. The
 manager persona stayed within the booking policy and asked for missing booking

@@ -11,6 +11,9 @@ to the structured half with `venue_id: haymarket_tap`, `party_size: 12`,
 `venue_capacity: 8`, and deposit `£0`. The structured half rejected it with
 `party_too_large`, and the bridge wrote a reverse handoff back to the loop with
 that rejection reason.
+Observability for this bridge is the session artifact model: trace JSONL,
+archived handoff files, and ticket manifests with SHA-256 checksums make the
+round trip inspectable after the run.
 
 Round 2 demonstrates the intended recovery. The planner received the rejection
 context, searched Old Town for party size 12, and handed off `royal_oak` with
@@ -26,6 +29,10 @@ records `fallback_from_action: resume_from_loop`, because live Rasa did not rout
 `resume_from_loop` directly and the structured half retried through
 `confirm_booking`. The same validation policy still ran, and the accepted
 booking is `royal_oak` for 12 people.
+The bridge uses the session directory as durable memory between halves: the
+current retry context is carried in the reverse handoff file, while prior
+handoffs are preserved under `logs/handoffs/` for audit instead of being kept
+only in process memory.
 
 ## Citations
 
